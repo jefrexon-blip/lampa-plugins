@@ -1,3 +1,16 @@
+Lampa.Manifest = {
+	type: 'plugin',
+	name: 'Рейтинг KP + IMDb',
+	description: 'Показывает рейтинги Кинопоиска и IMDb в карточке фильма/сериала.',
+	version: '2.2.0',
+	author: 'jefrexon',
+	icon: 'data:image/svg+xml;utf8,' + encodeURIComponent(
+		'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">' +
+		'<path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>' +
+		'</svg>'
+	)
+};
+
 (function () {
 	'use strict';
 
@@ -9,9 +22,9 @@
 	// Plugin meta
 	// =============================
 	var PLUGIN_ID = 'rating_kp_imdb';
-	var PLUGIN_NAME = 'Рейтинг KP + IMDb';
-	var PLUGIN_VERSION = '2.1.0';
-	var PLUGIN_AUTHOR = 'jefrexon-blip';
+	var PLUGIN_NAME = Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : 'Рейтинг KP + IMDb';
+	var PLUGIN_VERSION = Lampa.Manifest && Lampa.Manifest.version ? Lampa.Manifest.version : '2.2.0';
+	var PLUGIN_AUTHOR = Lampa.Manifest && Lampa.Manifest.author ? Lampa.Manifest.author : 'jefrexon';
 
 	// Storage keys
 	var KEY_ENABLED = 'rating_kpimdb_enabled';
@@ -27,17 +40,17 @@
 	function setShowKp(v) { Lampa.Storage.set(KEY_SHOW_KP, !!v); }
 	function setShowImdb(v) { Lampa.Storage.set(KEY_SHOW_IMDB, !!v); }
 
-	// Register plugin (so it has a name in Lampa)
+	// Register plugin (internal list)
 	try {
-		Lampa.Plugin.create(PLUGIN_ID, {
-			name: PLUGIN_NAME,
-			description: 'Показывает рейтинги Кинопоиска и IMDb в карточке фильма/сериала.',
-			version: PLUGIN_VERSION,
-			author: PLUGIN_AUTHOR
-		});
-	} catch (e) {
-		// если в какой-то сборке API другой — просто продолжаем, логика плагина всё равно отработает
-	}
+		if (Lampa.Plugin && Lampa.Plugin.create) {
+			Lampa.Plugin.create(PLUGIN_ID, {
+				name: PLUGIN_NAME,
+				description: (Lampa.Manifest && Lampa.Manifest.description) || 'Показывает рейтинги Кинопоиска и IMDb.',
+				version: PLUGIN_VERSION,
+				author: PLUGIN_AUTHOR
+			});
+		}
+	} catch (e) {}
 
 	// =============================
 	// Settings UI
@@ -45,74 +58,42 @@
 	(function initSettings() {
 		if (!Lampa.SettingsApi || !Lampa.SettingsApi.addParam) return;
 
-		// Компонент в настройках плагинов
 		try {
 			Lampa.SettingsApi.addComponent({
 				component: PLUGIN_ID,
 				name: PLUGIN_NAME,
-				icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 17.3l-5.4 3 1-6.1-4.4-4.3 6.1-.9L12 3l2.7 5.9 6.1.9-4.4 4.3 1 6.1z"/></svg>'
+				icon: (Lampa.Manifest && Lampa.Manifest.icon) ? Lampa.Manifest.icon : ''
 			});
 		} catch (e) {}
 
-		// Включение/выключение
 		Lampa.SettingsApi.addParam({
 			component: PLUGIN_ID,
-			param: {
-				name: KEY_ENABLED,
-				type: 'toggle',
-				"default": true
-			},
+			param: { name: KEY_ENABLED, type: 'toggle', "default": true },
 			field: {
 				name: 'Включить плагин',
 				description: 'Если выключено — рейтинги не будут запрашиваться и отображаться.'
 			},
-			onChange: function (value) {
-				setEnabled(value);
-			}
+			onChange: function (value) { setEnabled(value); }
 		});
 
-		// Показ IMDb
 		Lampa.SettingsApi.addParam({
 			component: PLUGIN_ID,
-			param: {
-				name: KEY_SHOW_IMDB,
-				type: 'toggle',
-				"default": true
-			},
-			field: {
-				name: 'Показывать IMDb',
-				description: 'Показывать рейтинг IMDb (если доступен).'
-			},
-			onChange: function (value) {
-				setShowImdb(value);
-			}
+			param: { name: KEY_SHOW_IMDB, type: 'toggle', "default": true },
+			field: { name: 'Показывать IMDb', description: 'Показывать рейтинг IMDb (если доступен).' },
+			onChange: function (value) { setShowImdb(value); }
 		});
 
-		// Показ KP
 		Lampa.SettingsApi.addParam({
 			component: PLUGIN_ID,
-			param: {
-				name: KEY_SHOW_KP,
-				type: 'toggle',
-				"default": true
-			},
-			field: {
-				name: 'Показывать Кинопоиск',
-				description: 'Показывать рейтинг Кинопоиска (если доступен).'
-			},
-			onChange: function (value) {
-				setShowKp(value);
-			}
+			param: { name: KEY_SHOW_KP, type: 'toggle', "default": true },
+			field: { name: 'Показывать Кинопоиск', description: 'Показывать рейтинг Кинопоиска (если доступен).' },
+			onChange: function (value) { setShowKp(value); }
 		});
 
-		// Версия (просто информативная строка)
+		// Версия в UI
 		Lampa.SettingsApi.addParam({
 			component: PLUGIN_ID,
-			param: {
-				name: 'rating_kpimdb_version',
-				type: 'static',
-				"default": ''
-			},
+			param: { name: 'rating_kpimdb_version', type: 'static', "default": '' },
 			field: {
 				name: 'Версия',
 				description: PLUGIN_NAME + ' v' + PLUGIN_VERSION + ' • ' + PLUGIN_AUTHOR
@@ -208,7 +189,7 @@
 		if (v === undefined || v === null) return null;
 		var n = parseFloat(String(v).replace(',', '.'));
 		if (isNaN(n)) return null;
-		if (n <= 0) return null; // считаем 0 как “нет данных”
+		if (n <= 0) return null; // 0 считаем как “нет данных”
 		return n;
 	}
 
@@ -296,10 +277,9 @@
 
 		$('.wait_rating', render).remove();
 
-		// Tooltip с версией (это “в UI” на карточке, но ненавязчиво)
+		// Tooltip с версией
 		var tip = PLUGIN_NAME + ' v' + PLUGIN_VERSION;
 
-		// Применяем настройки отображения
 		if (getShowImdb()) {
 			$('.rate--imdb', render).removeClass('hide').attr('title', tip).find('> div').eq(0).text(imdbText);
 		} else {
@@ -387,9 +367,7 @@
 							false,
 							{ headers: params.headers }
 						);
-					} else {
-						chooseFilm([]);
-					}
+					} else chooseFilm([]);
 				},
 				function () {
 					var fail2 = cacheSet(params.id, { kp: null, imdb: null, ok: false }, TTL_FAIL);
@@ -507,9 +485,7 @@
 					}
 					base_search(id);
 				},
-				function () {
-					base_search(id);
-				},
+				function () { base_search(id); },
 				false,
 				{ dataType: 'text' }
 			);
@@ -559,21 +535,18 @@
 			// Если оба выключены — ничего не делаем
 			if (!getShowKp() && !getShowImdb()) return;
 
-			// Не дублируем
+			// Не дублируем ожидание
 			if ($('.wait_rating', render).length) return;
 
-			// Если оба блока скрыты и мы собираемся их показать — ставим “ожидание”
-			// (на некоторых темах Lampa уже рисует .rate--kp/.rate--imdb)
 			$('.info__rate', render).after(
 				'<div style="width:2em;margin-top:1em;margin-right:1em" class="wait_rating">' +
 					'<div class="broadcast__scan"><div></div></div>' +
 				'</div>'
 			);
 
-			// Сразу проставим "-" (чтобы было видно даже до ответа)
-			showRating(render, e.data.movie && e.data.movie.id, { kp: null, imdb: null });
+			// Сразу проставим "-" чтобы не было пусто
+			try { showRating(render, e.data.movie && e.data.movie.id, { kp: null, imdb: null }); } catch (err) {}
 
-			// Запуск запроса
 			rating_kp_imdb(e.data.movie, render);
 		});
 	}
