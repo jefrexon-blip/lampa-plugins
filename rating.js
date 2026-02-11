@@ -9,7 +9,6 @@ Lampa.Manifest = {
 (function () {
   'use strict';
 
-  // Guard: не браузер / не Lampa
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
   if (typeof Lampa === 'undefined') return;
 
@@ -83,13 +82,12 @@ Lampa.Manifest = {
   function addSettingsGroup() {
     ensureDefaults();
 
-    // SettingsApi (новые сборки)
     if (Lampa.SettingsApi && Lampa.SettingsApi.addComponent && Lampa.SettingsApi.addParam) {
       try {
         Lampa.SettingsApi.addComponent({
           component: PLUGIN_ID,
-          name: PLUGIN_NAME
-          // icon НЕ указываем -> будет стандартная звёздочка
+          name: PLUGIN_NAME,
+          icon: '' // FIX: чтобы не показывало "undefined"
         });
       } catch (e) {}
 
@@ -146,7 +144,7 @@ Lampa.Manifest = {
           },
           default: "600000"
         },
-        field: { name: 'Кеш (ошибка)', description: 'Как долго хранить “-”, если не найдено/ошибка (чтобы не спамить запросами).' },
+        field: { name: 'Кеш (ошибка)', description: 'Как долго хранить “-”, если не найдено/ошибка.' },
         onChange: function (v) { storageSet(KEY_TTL_FAIL, String(v)); }
       });
 
@@ -159,7 +157,7 @@ Lampa.Manifest = {
       return;
     }
 
-    // Fallback: Settings.add (старые сборки)
+    // Fallback: старые сборки
     if (Lampa.Settings && Lampa.Settings.add) {
       try {
         Lampa.Settings.add({
@@ -186,7 +184,6 @@ Lampa.Manifest = {
     }
   }
 
-  // Запуск настроек после ready
   if (window.appready) addSettingsGroup();
   else if (Lampa.Listener && Lampa.Listener.follow) {
     Lampa.Listener.follow('app', function (e) {
@@ -282,7 +279,7 @@ Lampa.Manifest = {
     if (v === undefined || v === null) return null;
     var n = parseFloat(String(v).replace(',', '.'));
     if (isNaN(n)) return null;
-    if (n <= 0) return null; // 0 считаем “нет данных”
+    if (n <= 0) return null;
     return n;
   }
 
@@ -351,12 +348,32 @@ Lampa.Manifest = {
   }
 
   // =============================
+  // UI helpers: anti-repeat
+  // =============================
+  function _txt(el) {
+    try { return (el && el.length ? el.text() : '').trim(); } catch (e) { return ''; }
+  }
+  function hasShownRating(render) {
+    var ok = false;
+
+    if (getShowImdb()) {
+      var t = _txt($('.rate--imdb > div', render).eq(0));
+      if (t && t !== '-' && t !== '0.0') ok = true;
+    }
+    if (getShowKp()) {
+      var k = _txt($('.rate--kp > div', render).eq(0));
+      if (k && k !== '-' && k !== '0.0') ok = true;
+    }
+
+    return ok;
+  }
+
+  // =============================
   // UI render
   // =============================
   function showRating(render, paramsId, data) {
     if (!render || !render.length || !render.closest('body').length) return;
 
-    // защита “не та карточка”
     try {
       var current = Lampa.Activity.active && Lampa.Activity.active();
       if (current && current.activity && current.activity.data && current.activity.data.movie) {
@@ -400,7 +417,6 @@ Lampa.Manifest = {
 
     force = !!force;
 
-    // allow force refresh
     if (force) {
       try { delete __inflight[card.id]; } catch (e) {}
     }
@@ -579,7 +595,6 @@ Lampa.Manifest = {
 
       var id = cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId;
 
-      // 1) Try XML (fast)
       network.clear();
       network.timeout(5000);
 
@@ -602,7 +617,6 @@ Lampa.Manifest = {
         { dataType: 'text' }
       );
 
-      // 2) Fallback: REST
       function base_search(kpId) {
         network.clear();
         network.timeout(7000);
@@ -646,8 +660,13 @@ Lampa.Manifest = {
       var render = e.object && e.object.activity && e.object.activity.render ? e.object.activity.render() : null;
       if (!render || !render.length) return;
 
-      // если оба выключены — ничего не делаем
       if (!getShowKp() && !getShowImdb()) return;
+
+      // ✅ Anti-repeat: если уже показано — не трогаем
+      // (кнопка ↻ всё равно сделает force)
+      if (hasShownRating(render) && !$('.wait_rating', render).length) {
+        return;
+      }
 
       // --- кнопка обновления рейтинга ---
       try {
@@ -669,14 +688,12 @@ Lampa.Manifest = {
                 '</div>'
               );
 
-              // сразу покажем "-"
               showRating(render, movie.id, { kp: null, imdb: null });
 
               rating_kp_imdb(movie, render, true);
             } catch (err) {}
           });
 
-          // ставим рядом с рейтингом
           $('.info__rate', render).append(btn);
         }
       } catch (err2) {}
