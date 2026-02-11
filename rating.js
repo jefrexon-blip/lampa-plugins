@@ -1,8 +1,8 @@
 Lampa.Manifest = {
   type: 'plugin',
   name: 'Рейтинг KP + IMDb',
-  description: 'Показывает рейтинги Кинопоиска и IMDb в карточке фильма/сериала.',
-  version: '2.2.1',
+  description: 'Показывает рейтинги Кинопоиска и IMDb в карточке фильма/сериала. Кеш, обновление, цвет, анимации.',
+  version: '2.3.0',
   author: 'jefrexon'
 };
 
@@ -17,15 +17,23 @@ Lampa.Manifest = {
   // =============================
   var PLUGIN_ID = 'rating_kp_imdb';
   var PLUGIN_NAME = (Lampa.Manifest && Lampa.Manifest.name) ? Lampa.Manifest.name : 'Рейтинг KP + IMDb';
-  var PLUGIN_VERSION = (Lampa.Manifest && Lampa.Manifest.version) ? Lampa.Manifest.version : '2.2.1';
+  var PLUGIN_VERSION = (Lampa.Manifest && Lampa.Manifest.version) ? Lampa.Manifest.version : '2.3.0';
   var PLUGIN_AUTHOR = (Lampa.Manifest && Lampa.Manifest.author) ? Lampa.Manifest.author : 'jefrexon';
 
-  // Storage keys
-  var KEY_ENABLED = 'rating_kpimdb_enabled';
-  var KEY_SHOW_KP = 'rating_kpimdb_show_kp';
-  var KEY_SHOW_IMDB = 'rating_kpimdb_show_imdb';
-  var KEY_TTL_OK = 'rating_kpimdb_ttl_ok';
-  var KEY_TTL_FAIL = 'rating_kpimdb_ttl_fail';
+  // =============================
+  // Keys
+  // =============================
+  var KEY_ENABLED      = 'rating_kpimdb_enabled';
+  var KEY_SHOW_KP      = 'rating_kpimdb_show_kp';
+  var KEY_SHOW_IMDB    = 'rating_kpimdb_show_imdb';
+  var KEY_TTL_OK       = 'rating_kpimdb_ttl_ok';
+  var KEY_TTL_FAIL     = 'rating_kpimdb_ttl_fail';
+
+  var KEY_COLORIZE     = 'rating_kpimdb_colorize';
+  var KEY_ANIMATE      = 'rating_kpimdb_animate';
+  var KEY_BTN_SHOW     = 'rating_kpimdb_btn_show';
+  var KEY_BTN_POS      = 'rating_kpimdb_btn_pos';   // left / right
+  var KEY_DEBUG        = 'rating_kpimdb_debug';
 
   // =============================
   // Storage helpers (compat)
@@ -44,23 +52,40 @@ Lampa.Manifest = {
   }
 
   function ensureDefaults() {
-    if (storageGet(KEY_ENABLED, null) === null) storageSet(KEY_ENABLED, true);
-    if (storageGet(KEY_SHOW_KP, null) === null) storageSet(KEY_SHOW_KP, true);
+    if (storageGet(KEY_ENABLED, null)   === null) storageSet(KEY_ENABLED, true);
+    if (storageGet(KEY_SHOW_KP, null)   === null) storageSet(KEY_SHOW_KP, true);
     if (storageGet(KEY_SHOW_IMDB, null) === null) storageSet(KEY_SHOW_IMDB, true);
-    if (storageGet(KEY_TTL_OK, null) === null) storageSet(KEY_TTL_OK, '86400000');     // 24ч
+
+    if (storageGet(KEY_TTL_OK, null)   === null) storageSet(KEY_TTL_OK, '86400000');   // 24ч
     if (storageGet(KEY_TTL_FAIL, null) === null) storageSet(KEY_TTL_FAIL, '600000');   // 10м
+
+    if (storageGet(KEY_COLORIZE, null) === null) storageSet(KEY_COLORIZE, true);
+    if (storageGet(KEY_ANIMATE, null)  === null) storageSet(KEY_ANIMATE, true);
+    if (storageGet(KEY_BTN_SHOW, null) === null) storageSet(KEY_BTN_SHOW, true);
+    if (storageGet(KEY_BTN_POS, null)  === null) storageSet(KEY_BTN_POS, 'right');
+    if (storageGet(KEY_DEBUG, null)    === null) storageSet(KEY_DEBUG, false);
   }
 
-  function getEnabled() { return !!storageGet(KEY_ENABLED, true); }
-  function getShowKp() { return !!storageGet(KEY_SHOW_KP, true); }
-  function getShowImdb() { return !!storageGet(KEY_SHOW_IMDB, true); }
+  function getEnabled()   { return !!storageGet(KEY_ENABLED, true); }
+  function getShowKp()    { return !!storageGet(KEY_SHOW_KP, true); }
+  function getShowImdb()  { return !!storageGet(KEY_SHOW_IMDB, true); }
+  function getColorize()  { return !!storageGet(KEY_COLORIZE, true); }
+  function getAnimate()   { return !!storageGet(KEY_ANIMATE, true); }
+  function getBtnShow()   { return !!storageGet(KEY_BTN_SHOW, true); }
+  function getBtnPos()    { return String(storageGet(KEY_BTN_POS, 'right') || 'right'); }
+  function getDebug()     { return !!storageGet(KEY_DEBUG, false); }
 
   function ttlValue(v, fallback) {
     var n = parseInt(v, 10);
     return isNaN(n) ? fallback : n;
   }
-  function getTtlOk() { return ttlValue(storageGet(KEY_TTL_OK, '86400000'), 86400000); }
+  function getTtlOk()   { return ttlValue(storageGet(KEY_TTL_OK, '86400000'), 86400000); }
   function getTtlFail() { return ttlValue(storageGet(KEY_TTL_FAIL, '600000'), 600000); }
+
+  function dbg(msg){
+    if (!getDebug()) return;
+    try { Lampa.Noty.show(PLUGIN_NAME + ': ' + msg); } catch(e) {}
+  }
 
   // =============================
   // Plugin registration (internal list)
@@ -77,6 +102,25 @@ Lampa.Manifest = {
   } catch (e) {}
 
   // =============================
+  // CSS (once)
+  // =============================
+  function injectCssOnce(){
+    if (document.getElementById('rating_kpimdb_css')) return;
+    var css = '' +
+      '.rating_refresh_btn{cursor:pointer; user-select:none;}' +
+      '.rating_refresh_btn:hover{background:rgba(255,255,255,.10)!important;}' +
+      '.rate__val_pop{animation:ratePop .45s ease;}' +
+      '@keyframes ratePop{0%{transform:scale(1)} 35%{transform:scale(1.12)} 100%{transform:scale(1)}}' +
+      '';
+    var st = document.createElement('style');
+    st.id = 'rating_kpimdb_css';
+    st.type = 'text/css';
+    st.appendChild(document.createTextNode(css));
+    document.head.appendChild(st);
+  }
+  injectCssOnce();
+
+  // =============================
   // Settings group
   // =============================
   function addSettingsGroup() {
@@ -87,7 +131,7 @@ Lampa.Manifest = {
         Lampa.SettingsApi.addComponent({
           component: PLUGIN_ID,
           name: PLUGIN_NAME,
-          icon: '' // FIX: чтобы не показывало "undefined"
+          icon: 'plugin' // ✅ чтобы в настройках не было пусто/undefined
         });
       } catch (e) {}
 
@@ -110,6 +154,39 @@ Lampa.Manifest = {
         param: { name: KEY_SHOW_KP, type: 'trigger', default: true },
         field: { name: 'Показывать Кинопоиск', description: 'Показывать рейтинг Кинопоиска в карточке.' },
         onChange: function (v) { storageSet(KEY_SHOW_KP, !!v); }
+      });
+
+      Lampa.SettingsApi.addParam({
+        component: PLUGIN_ID,
+        param: { name: KEY_COLORIZE, type: 'trigger', default: true },
+        field: { name: 'Цвет по рейтингу', description: 'Окрашивает рейтинг в зависимости от значения.' },
+        onChange: function (v) { storageSet(KEY_COLORIZE, !!v); }
+      });
+
+      Lampa.SettingsApi.addParam({
+        component: PLUGIN_ID,
+        param: { name: KEY_ANIMATE, type: 'trigger', default: true },
+        field: { name: 'Анимация обновления', description: 'Небольшая анимация при обновлении значения.' },
+        onChange: function (v) { storageSet(KEY_ANIMATE, !!v); }
+      });
+
+      Lampa.SettingsApi.addParam({
+        component: PLUGIN_ID,
+        param: { name: KEY_BTN_SHOW, type: 'trigger', default: true },
+        field: { name: 'Кнопка ↻', description: 'Показывать кнопку обновления рейтинга в карточке.' },
+        onChange: function (v) { storageSet(KEY_BTN_SHOW, !!v); }
+      });
+
+      Lampa.SettingsApi.addParam({
+        component: PLUGIN_ID,
+        param: {
+          name: KEY_BTN_POS,
+          type: 'select',
+          values: { left: 'Слева', right: 'Справа' },
+          default: 'right'
+        },
+        field: { name: 'Позиция ↻', description: 'Где размещать кнопку обновления.' },
+        onChange: function (v) { storageSet(KEY_BTN_POS, String(v || 'right')); }
       });
 
       Lampa.SettingsApi.addParam({
@@ -150,6 +227,13 @@ Lampa.Manifest = {
 
       Lampa.SettingsApi.addParam({
         component: PLUGIN_ID,
+        param: { name: KEY_DEBUG, type: 'trigger', default: false },
+        field: { name: 'Debug', description: 'Показывать отладочные уведомления (источник, кеш, ошибки).' },
+        onChange: function (v) { storageSet(KEY_DEBUG, !!v); }
+      });
+
+      Lampa.SettingsApi.addParam({
+        component: PLUGIN_ID,
         param: { name: 'rating_kpimdb_version', type: 'static' },
         field: { name: 'Версия', description: PLUGIN_NAME + ' v' + PLUGIN_VERSION + ' • ' + PLUGIN_AUTHOR }
       });
@@ -167,6 +251,10 @@ Lampa.Manifest = {
             { name: KEY_ENABLED, type: 'trigger', default: true, caption: 'Включить плагин', desc: 'Полностью включает/выключает отображение рейтингов.' },
             { name: KEY_SHOW_IMDB, type: 'trigger', default: true, caption: 'Показывать IMDb', desc: 'Показывать рейтинг IMDb в карточке.' },
             { name: KEY_SHOW_KP, type: 'trigger', default: true, caption: 'Показывать Кинопоиск', desc: 'Показывать рейтинг Кинопоиска в карточке.' },
+            { name: KEY_COLORIZE, type: 'trigger', default: true, caption: 'Цвет по рейтингу', desc: 'Окрашивает рейтинг в зависимости от значения.' },
+            { name: KEY_ANIMATE, type: 'trigger', default: true, caption: 'Анимация обновления', desc: 'Анимация при обновлении значения.' },
+            { name: KEY_BTN_SHOW, type: 'trigger', default: true, caption: 'Кнопка ↻', desc: 'Показывать кнопку обновления рейтинга.' },
+            { name: KEY_BTN_POS, type: 'select', default: 'right', values: { left: 'Слева', right: 'Справа' }, caption: 'Позиция ↻', desc: 'Где размещать кнопку обновления.' },
             {
               name: KEY_TTL_OK, type: 'select', default: '86400000',
               values: { "3600000": "1 час", "21600000": "6 часов", "43200000": "12 часов", "86400000": "24 часа", "604800000": "7 дней" },
@@ -177,6 +265,7 @@ Lampa.Manifest = {
               values: { "60000": "1 мин", "300000": "5 мин", "600000": "10 мин", "1800000": "30 мин", "3600000": "1 час" },
               caption: 'Кеш (ошибка)', desc: 'Как долго хранить “-”, если не найдено/ошибка.'
             },
+            { name: KEY_DEBUG, type: 'trigger', default: false, caption: 'Debug', desc: 'Отладочные уведомления.' },
             { name: 'rating_kpimdb_version', type: 'static', caption: 'Версия', desc: PLUGIN_NAME + ' v' + PLUGIN_VERSION + ' • ' + PLUGIN_AUTHOR }
           ]
         });
@@ -194,7 +283,7 @@ Lampa.Manifest = {
   }
 
   // =============================
-  // Helpers (original)
+  // Helpers
   // =============================
   function endsWith(str, searchString) {
     var start = str.length - searchString.length;
@@ -233,7 +322,7 @@ Lampa.Manifest = {
     return result;
   }
 
-  function isDebug() {
+  function isDebugDomain() {
     var res = false;
     var origin = window.location.origin || '';
     try {
@@ -306,12 +395,35 @@ Lampa.Manifest = {
   }
 
   // =============================
-  // Cache + singleflight
+  // Cache + cleanup
   // =============================
   var __inflight = Object.create(null);
 
   var CACHE_KEY = 'kp_rating';
   var CACHE_LIMIT = 500;
+  var CACHE_SOFT_MAX = 480; // если больше — чистим старые
+
+  function cacheCleanup(cache){
+    try {
+      var keys = Object.keys(cache || {});
+      if (keys.length <= CACHE_SOFT_MAX) return cache;
+
+      keys.sort(function(a,b){
+        var ta = (cache[a] && cache[a].timestamp) || 0;
+        var tb = (cache[b] && cache[b].timestamp) || 0;
+        return ta - tb;
+      });
+
+      // удаляем самые старые
+      while (keys.length > CACHE_SOFT_MAX) {
+        var k = keys.shift();
+        delete cache[k];
+      }
+      return cache;
+    } catch(e){
+      return cache;
+    }
+  }
 
   function cacheGet(movieId) {
     var now = Date.now();
@@ -322,9 +434,13 @@ Lampa.Manifest = {
     var ttl = rec.ttl || getTtlOk();
     if ((now - rec.timestamp) > ttl) {
       delete cache[movieId];
+      cache = cacheCleanup(cache);
       Lampa.Storage.set(CACHE_KEY, cache);
       return null;
     }
+
+    // отметим источник кеша
+    rec._src = 'cache';
     return rec;
   }
 
@@ -335,6 +451,8 @@ Lampa.Manifest = {
     data.timestamp = now;
     data.ttl = ttl;
     cache[movieId] = data;
+
+    cache = cacheCleanup(cache);
     Lampa.Storage.set(CACHE_KEY, cache);
     return data;
   }
@@ -343,16 +461,18 @@ Lampa.Manifest = {
     var cache = Lampa.Storage.cache(CACHE_KEY, CACHE_LIMIT, {});
     if (cache[movieId]) {
       delete cache[movieId];
+      cache = cacheCleanup(cache);
       Lampa.Storage.set(CACHE_KEY, cache);
     }
   }
 
   // =============================
-  // UI helpers: anti-repeat
+  // UI helpers
   // =============================
   function _txt(el) {
     try { return (el && el.length ? el.text() : '').trim(); } catch (e) { return ''; }
   }
+
   function hasShownRating(render) {
     var ok = false;
 
@@ -368,57 +488,139 @@ Lampa.Manifest = {
     return ok;
   }
 
-  // =============================
-  // UI render
-  // =============================
-  function showRating(render, paramsId, data) {
-    if (!render || !render.length || !render.closest('body').length) return;
-
+  function getActiveMovieIdSafe(){
     try {
       var current = Lampa.Activity.active && Lampa.Activity.active();
       if (current && current.activity && current.activity.data && current.activity.data.movie) {
-        var currentId = current.activity.data.movie.id;
-        if (currentId && paramsId && currentId !== paramsId) return;
+        return current.activity.data.movie.id;
       }
-    } catch (e) {}
+    } catch(e) {}
+    return null;
+  }
 
-    var kpText = '-';
-    var imdbText = '-';
+  function colorForRating(v){
+    if (!getColorize()) return '';
+    if (typeof v !== 'number' || isNaN(v) || v <= 0) return '';
 
-    if (data) {
-      if (typeof data.kp === 'number' && !isNaN(data.kp) && data.kp > 0) kpText = data.kp.toFixed(1);
-      if (typeof data.imdb === 'number' && !isNaN(data.imdb) && data.imdb > 0) imdbText = data.imdb.toFixed(1);
+    // градация
+    if (v >= 8.5) return '#27c46b';  // зелёный
+    if (v >= 7.0) return '#f0c24b';  // жёлтый
+    return '#ff5f5f';                // красный
+  }
+
+  function applyValue(render, selector, valText, valNum){
+    var el = $(selector, render);
+    if (!el.length) return;
+
+    el.text(valText);
+
+    // цвет
+    var col = colorForRating(valNum);
+    if (col) el.css('color', col);
+    else el.css('color', '');
+
+    // анимация
+    if (getAnimate()) {
+      el.removeClass('rate__val_pop'); // reflow trick
+      void el[0].offsetWidth;
+      el.addClass('rate__val_pop');
     }
+  }
+
+  function buildTooltip(src){
+    // src: cache/xml/api/none
+    var s = '';
+    if (src === 'xml') s = 'Источник: XML';
+    else if (src === 'api') s = 'Источник: API';
+    else if (src === 'cache') s = 'Источник: Cache';
+    else s = 'Источник: —';
+    return PLUGIN_NAME + ' v' + PLUGIN_VERSION + ' • ' + s;
+  }
+
+  function showDiffNoty(prev, next){
+    // prev/next: {kp, imdb}
+    function fmt(n){ return (typeof n === 'number' && !isNaN(n) && n > 0) ? n.toFixed(1) : '-'; }
+    var lines = [];
+
+    if (getShowImdb()){
+      var a = fmt(prev && prev.imdb);
+      var b = fmt(next && next.imdb);
+      if (a !== b) lines.push('IMDb ' + a + ' → ' + b);
+    }
+    if (getShowKp()){
+      var c = fmt(prev && prev.kp);
+      var d = fmt(next && next.kp);
+      if (c !== d) lines.push('KP ' + c + ' → ' + d);
+    }
+
+    if (!lines.length) lines.push('Без изменений');
+
+    try { Lampa.Noty.show(lines.join(' • ')); } catch(e) {}
+  }
+
+  // =============================
+  // UI render
+  // =============================
+  function showRating(render, movieId, data, src) {
+    if (!render || !render.length || !render.closest('body').length) return;
+
+    // защита: не та карточка
+    var activeId = getActiveMovieIdSafe();
+    if (activeId && movieId && activeId !== movieId) return;
+
+    var kpNum = (data && typeof data.kp === 'number') ? data.kp : null;
+    var imdbNum = (data && typeof data.imdb === 'number') ? data.imdb : null;
+
+    var kpText = (kpNum && kpNum > 0) ? kpNum.toFixed(1) : '-';
+    var imdbText = (imdbNum && imdbNum > 0) ? imdbNum.toFixed(1) : '-';
 
     $('.wait_rating', render).remove();
 
-    var tip = PLUGIN_NAME + ' v' + PLUGIN_VERSION;
+    var tip = buildTooltip(src || (data && data._src) || 'none');
 
     if (getShowImdb()) {
-      $('.rate--imdb', render).removeClass('hide').attr('title', tip).find('> div').eq(0).text(imdbText);
+      $('.rate--imdb', render).removeClass('hide').attr('title', tip);
+      applyValue(render, '.rate--imdb > div:first', imdbText, imdbNum);
     } else {
       $('.rate--imdb', render).addClass('hide');
     }
 
     if (getShowKp()) {
-      $('.rate--kp', render).removeClass('hide').attr('title', tip).find('> div').eq(0).text(kpText);
+      $('.rate--kp', render).removeClass('hide').attr('title', tip);
+      applyValue(render, '.rate--kp > div:first', kpText, kpNum);
     } else {
       $('.rate--kp', render).addClass('hide');
     }
   }
 
   // =============================
-  // Core: fetch + choose
+  // Core
   // =============================
-  function rating_kp_imdb(card, render, force) {
+  function rating_kp_imdb(card, render, force, prevShown) {
     if (!card || !card.id) return;
     if (!getEnabled()) return;
     if (!getShowKp() && !getShowImdb()) return;
 
     force = !!force;
 
+    // singleflight
     if (force) {
       try { delete __inflight[card.id]; } catch (e) {}
+    }
+    if (__inflight[card.id]) return;
+    __inflight[card.id] = true;
+
+    var targetMovieId = card.id;
+
+    function done() { delete __inflight[targetMovieId]; }
+
+    // cache
+    var cached = !force ? cacheGet(targetMovieId) : null;
+    if (cached) {
+      showRating(render, targetMovieId, cached, 'cache');
+      dbg('cache hit');
+      done();
+      return;
     }
 
     var network = new Lampa.Reguest();
@@ -430,7 +632,7 @@ Lampa.Manifest = {
 
     var kp_prox = '';
     var params = {
-      id: card.id,
+      id: targetMovieId,
       url: kp_prox + 'https://kinopoiskapiunofficial.tech/',
       rating_url: kp_prox + 'https://rating.kinopoisk.ru/',
       headers: {
@@ -441,18 +643,14 @@ Lampa.Manifest = {
       }
     };
 
-    if (__inflight[params.id]) return;
-    __inflight[params.id] = true;
-    function done() { delete __inflight[params.id]; }
-
-    var cached = !force ? cacheGet(params.id) : null;
-    if (cached) {
-      showRating(render, params.id, cached);
-      done();
-      return;
-    }
-
     searchFilm();
+
+    function failAndDone(reason){
+      dbg('fail: ' + reason);
+      var rec = cacheSet(targetMovieId, { kp: null, imdb: null, ok: false, _src: 'none' }, getTtlFail());
+      showRating(render, targetMovieId, rec, 'none');
+      done();
+    }
 
     function searchFilm() {
       var url = params.url;
@@ -465,28 +663,24 @@ Lampa.Manifest = {
       else url = url_by_title;
 
       network.clear();
-      network.timeout(7000);
+      network.timeout(6000);
 
       network.silent(
         url,
         function (json) {
-          if (json.items && json.items.length) chooseFilm(json.items);
-          else if (json.films && json.films.length) chooseFilm(json.films);
+          var items = (json && json.items && json.items.length) ? json.items : (json && json.films && json.films.length) ? json.films : null;
+          if (items) chooseFilm(items);
           else if (url !== url_by_title) {
             network.clear();
-            network.timeout(7000);
+            network.timeout(6000);
             network.silent(
               url_by_title,
               function (json2) {
-                if (json2.items && json2.items.length) chooseFilm(json2.items);
-                else if (json2.films && json2.films.length) chooseFilm(json2.films);
+                var items2 = (json2 && json2.items && json2.items.length) ? json2.items : (json2 && json2.films && json2.films.length) ? json2.films : null;
+                if (items2) chooseFilm(items2);
                 else chooseFilm([]);
               },
-              function () {
-                var fail = cacheSet(params.id, { kp: null, imdb: null, ok: false }, getTtlFail());
-                showRating(render, params.id, fail);
-                done();
-              },
+              function () { chooseFilm([]); },
               false,
               { headers: params.headers }
             );
@@ -494,23 +688,14 @@ Lampa.Manifest = {
             chooseFilm([]);
           }
         },
-        function () {
-          var fail2 = cacheSet(params.id, { kp: null, imdb: null, ok: false }, getTtlFail());
-          showRating(render, params.id, fail2);
-          done();
-        },
+        function () { chooseFilm([]); },
         false,
         { headers: params.headers }
       );
     }
 
     function chooseFilm(items) {
-      if (!items || !items.length) {
-        var nf = cacheSet(params.id, { kp: null, imdb: null, ok: false }, getTtlFail());
-        showRating(render, params.id, nf);
-        done();
-        return;
-      }
+      if (!items || !items.length) return failAndDone('not found');
 
       var is_sure = false;
       var is_imdb = false;
@@ -541,10 +726,7 @@ Lampa.Manifest = {
             containsTitle(elem.title || elem.ru_title || elem.nameRu, orig)
           );
         });
-        if (t0.length) {
-          cards = t0;
-          is_sure = true;
-        }
+        if (t0.length) { cards = t0; is_sure = true; }
       }
 
       if (cards.length && card.title) {
@@ -555,10 +737,7 @@ Lampa.Manifest = {
             containsTitle(elem.orig_title || elem.nameOriginal, card.title)
           );
         });
-        if (t1.length) {
-          cards = t1;
-          is_sure = true;
-        }
+        if (t1.length) { cards = t1; is_sure = true; }
       }
 
       if (cards.length > 1 && search_year) {
@@ -586,40 +765,38 @@ Lampa.Manifest = {
         }
       }
 
-      if (!(cards.length == 1 && is_sure)) {
-        var unsure = cacheSet(params.id, { kp: null, imdb: null, ok: false }, getTtlFail());
-        showRating(render, params.id, unsure);
-        done();
-        return;
-      }
+      if (!(cards.length == 1 && is_sure)) return failAndDone('unsure match');
 
-      var id = cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId;
+      var kpId = cards[0].kp_id || cards[0].kinopoisk_id || cards[0].kinopoiskId || cards[0].filmId;
 
+      // 1) XML (3s)
       network.clear();
-      network.timeout(5000);
+      network.timeout(3000);
 
       network["native"](
-        params.rating_url + id + '.xml',
+        params.rating_url + kpId + '.xml',
         function (str) {
           var parsed = parseXmlRatings(str);
           if (parsed) {
-            var ok = cacheSet(params.id, { kp: parsed.kp, imdb: parsed.imdb, ok: true }, getTtlOk());
-            showRating(render, params.id, ok);
+            var ok = cacheSet(targetMovieId, { kp: parsed.kp, imdb: parsed.imdb, ok: true, _src: 'xml' }, getTtlOk());
+            showRating(render, targetMovieId, ok, 'xml');
+            dbg('xml ok');
+
+            if (force) showDiffNoty(prevShown, ok);
             done();
             return;
           }
-          base_search(id);
+          base_search();
         },
-        function () {
-          base_search(id);
-        },
+        function () { base_search(); },
         false,
         { dataType: 'text' }
       );
 
-      function base_search(kpId) {
+      // 2) API (5s)
+      function base_search() {
         network.clear();
-        network.timeout(7000);
+        network.timeout(5000);
         network.silent(
           params.url + 'api/v2.2/films/' + kpId,
           function (data) {
@@ -629,15 +806,14 @@ Lampa.Manifest = {
             var okFlag = (kp !== null) || (imdb !== null);
             var ttl = okFlag ? getTtlOk() : getTtlFail();
 
-            var saved = cacheSet(params.id, { kp: kp, imdb: imdb, ok: okFlag }, ttl);
-            showRating(render, params.id, saved);
+            var saved = cacheSet(targetMovieId, { kp: kp, imdb: imdb, ok: okFlag, _src: 'api' }, ttl);
+            showRating(render, targetMovieId, saved, 'api');
+            dbg('api ' + (okFlag ? 'ok' : 'empty'));
+
+            if (force) showDiffNoty(prevShown, saved);
             done();
           },
-          function () {
-            var fail3 = cacheSet(params.id, { kp: null, imdb: null, ok: false }, getTtlFail());
-            showRating(render, params.id, fail3);
-            done();
-          },
+          function () { failAndDone('api error'); },
           false,
           { headers: params.headers }
         );
@@ -650,11 +826,10 @@ Lampa.Manifest = {
   // =============================
   function startPlugin() {
     window.rating_plugin = true;
-    if (isDebug()) return;
+    if (isDebugDomain()) return;
 
     Lampa.Listener.follow('full', function (e) {
       if (e.type !== 'complite') return;
-
       if (!getEnabled()) return;
 
       var render = e.object && e.object.activity && e.object.activity.render ? e.object.activity.render() : null;
@@ -662,43 +837,56 @@ Lampa.Manifest = {
 
       if (!getShowKp() && !getShowImdb()) return;
 
-      // ✅ Anti-repeat: если уже показано — не трогаем
-      // (кнопка ↻ всё равно сделает force)
-      if (hasShownRating(render) && !$('.wait_rating', render).length) {
-        return;
-      }
+      // ✅ не повторяем запрос, если уже показано и нет спиннера
+      if (hasShownRating(render) && !$('.wait_rating', render).length) return;
 
-      // --- кнопка обновления рейтинга ---
+      // кнопка ↻
       try {
-        if (!$('.rating_refresh_btn', render).length) {
-          var btn = $('<div class="rating_refresh_btn" style="display:inline-flex;align-items:center;justify-content:center;width:2.1em;height:2.1em;margin-left:.6em;border-radius:.6em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);">↻</div>');
-          btn.attr('title', 'Обновить рейтинг (' + PLUGIN_NAME + ' v' + PLUGIN_VERSION + ')');
+        if (getBtnShow()) {
+          if (!$('.rating_refresh_btn', render).length) {
+            var btn = $('<div class="rating_refresh_btn" style="display:inline-flex;align-items:center;justify-content:center;width:2.1em;height:2.1em;border-radius:.6em;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);">↻</div>');
+            btn.attr('title', 'Обновить рейтинг (' + PLUGIN_NAME + ' v' + PLUGIN_VERSION + ')');
 
-          btn.on('hover:enter hover:click hover:touch', function () {
-            try {
-              var movie = e.data && e.data.movie;
-              if (!movie || !movie.id) return;
+            btn.on('hover:enter hover:click hover:touch', function () {
+              try {
+                var movie = e.data && e.data.movie;
+                if (!movie || !movie.id) return;
 
-              cacheDelete(movie.id);
+                // запомним текущее, чтобы показать diff
+                var prev = {
+                  imdb: safeNumber(_txt($('.rate--imdb > div', render).eq(0))),
+                  kp: safeNumber(_txt($('.rate--kp > div', render).eq(0)))
+                };
 
-              $('.wait_rating', render).remove();
-              $('.info__rate', render).after(
-                '<div style="width:2em;margin-top:1em;margin-right:1em" class="wait_rating">' +
-                  '<div class="broadcast__scan"><div></div></div>' +
-                '</div>'
-              );
+                cacheDelete(movie.id);
 
-              showRating(render, movie.id, { kp: null, imdb: null });
+                $('.wait_rating', render).remove();
+                $('.info__rate', render).after(
+                  '<div style="width:2em;margin-top:1em;margin-right:1em" class="wait_rating">' +
+                    '<div class="broadcast__scan"><div></div></div>' +
+                  '</div>'
+                );
 
-              rating_kp_imdb(movie, render, true);
-            } catch (err) {}
-          });
+                showRating(render, movie.id, { kp: null, imdb: null, _src: 'none' }, 'none');
 
-          $('.info__rate', render).append(btn);
+                rating_kp_imdb(movie, render, true, prev);
+              } catch (err) {}
+            });
+
+            var pos = getBtnPos();
+            if (pos === 'left') {
+              $('.info__rate', render).prepend(btn.css({ marginRight: '.6em' }));
+            } else {
+              btn.css({ marginLeft: '.6em' });
+              $('.info__rate', render).append(btn);
+            }
+          }
+        } else {
+          $('.rating_refresh_btn', render).remove();
         }
       } catch (err2) {}
 
-      // --- ожидание ---
+      // ожидание
       if (!$('.wait_rating', render).length) {
         $('.info__rate', render).after(
           '<div style="width:2em;margin-top:1em;margin-right:1em" class="wait_rating">' +
@@ -707,11 +895,11 @@ Lampa.Manifest = {
         );
       }
 
-      // сразу "-"
-      try { showRating(render, e.data.movie && e.data.movie.id, { kp: null, imdb: null }); } catch (ex) {}
+      // стартовые "-"
+      try { showRating(render, e.data.movie && e.data.movie.id, { kp: null, imdb: null, _src: 'none' }, 'none'); } catch (ex) {}
 
       // запрос
-      rating_kp_imdb(e.data.movie, render, false);
+      rating_kp_imdb(e.data.movie, render, false, null);
     });
   }
 
