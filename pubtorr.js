@@ -1,35 +1,65 @@
+/***********************
+ * LME PubTorr / Parsers Catalog
+ * Safe (no async/await, no Object.values)
+ ***********************/
+
+// ✅ Manifest (для автора/иконки в списке плагинов) — ставь самым первым
+try {
+  if (typeof Lampa !== 'undefined') {
+    Lampa.Manifest = {
+      type: 'plugin',
+      name: 'LME PubTorr',
+      description: 'Каталог парсеров + проверка доступности (Jackett / Prowlarr).',
+      version: '1.0.1-prod',
+      author: 'jefrexon',
+      icon:
+        '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+          '<path d="M4 6.5C4 5.119 5.119 4 6.5 4h11C18.881 4 20 5.119 20 6.5v11c0 1.381-1.119 2.5-2.5 2.5h-11C5.119 20 4 18.881 4 17.5v-11Z" stroke="currentColor" stroke-width="2"/>' +
+          '<path d="M7 16l4-4 3 3 3-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+          '<circle cx="17" cy="9" r="1.3" fill="currentColor"/>' +
+        '</svg>'
+    };
+  }
+} catch (e) {}
+
 (function () {
   'use strict';
+
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (typeof Lampa === 'undefined') return;
+  if (typeof $ === 'undefined') return;
 
   /** =========================
    *  Meta
    *  ========================= */
-  var PUBTORR_VERSION = '1.0.0-prod';
+  var PUBTORR_VERSION = (Lampa.Manifest && Lampa.Manifest.version) ? Lampa.Manifest.version : '1.0.1-prod';
   var PUBTORR_BUILD = '2026-02-13';
 
   /** =========================
    *  i18n
    *  ========================= */
   function translate() {
-    Lampa.Lang.add({
-      lme_parser: { ru: 'Каталог парсеров', en: 'Parsers catalog', uk: 'Каталог парсерів', zh: '解析器目录' },
-      lme_parser_description: { ru: 'Нажмите для выбора парсера из ', en: 'Click to select a parser from the ', uk: 'Натисніть для вибору парсера з ', zh: '单击以从可用的 ' },
-      lme_parser_current: { ru: 'Текущий выбор:', en: 'Current selection:', uk: 'Поточний вибір:', zh: '当前选择：' },
-      lme_parser_selected: { ru: 'Выбрано', en: 'Selected', uk: 'Обрано', zh: '已选择' },
-      lme_parser_refresh: { ru: 'Обновить проверку', en: 'Refresh check', uk: 'Оновити перевірку', zh: '刷新检测' },
-      lme_parser_none: { ru: 'Не выбран', en: 'Not selected', uk: 'Не вибрано', zh: '未选择' },
-      lme_parser_health: { ru: 'Индикация состояния парсеров', en: 'Parser health indicator', uk: 'Індикація стану парсерів', zh: '解析器状态指示' },
-      lme_parser_status_ok: { ru: 'Доступен', en: 'Available', uk: 'Доступний', zh: '可用' },
-      lme_parser_status_auth: { ru: 'Ошибка ключа', en: 'Auth error', uk: 'Помилка ключа', zh: '密钥错误' },
-      lme_parser_status_network: { ru: 'Недоступен', en: 'Unavailable', uk: 'Недоступний', zh: '不可用' },
-      lme_parser_status_unknown: { ru: 'Не проверен', en: 'Unchecked', uk: 'Не перевірено', zh: '未检查' },
-      lme_parser_status_checking: { ru: 'Проверка', en: 'Checking', uk: 'Перевірка', zh: '检查中' },
-      lme_parser_lastcheck: { ru: 'Последняя проверка:', en: 'Last check:', uk: 'Остання перевірка:', zh: '上次检查：' },
-      lme_parser_version: { ru: 'Версия:', en: 'Version:', uk: 'Версія:', zh: '版本：' },
+    try {
+      Lampa.Lang.add({
+        lme_parser: { ru: 'Каталог парсеров', en: 'Parsers catalog', uk: 'Каталог парсерів', zh: '解析器目录' },
+        lme_parser_description: { ru: 'Нажмите для выбора парсера из', en: 'Click to select a parser from', uk: 'Натисніть для вибору парсера з', zh: '单击以从可用的' },
+        lme_parser_current: { ru: 'Текущий выбор:', en: 'Current selection:', uk: 'Поточний вибір:', zh: '当前选择：' },
+        lme_parser_selected: { ru: 'Выбрано', en: 'Selected', uk: 'Обрано', zh: '已选择' },
+        lme_parser_refresh: { ru: 'Обновить проверку', en: 'Refresh check', uk: 'Оновити перевірку', zh: '刷新检测' },
+        lme_parser_none: { ru: 'Не выбран', en: 'Not selected', uk: 'Не вибрано', zh: '未选择' },
+        lme_parser_health: { ru: 'Индикация состояния парсеров', en: 'Parser health indicator', uk: 'Індикація стану парсерів', zh: '解析器状态指示' },
+        lme_parser_status_ok: { ru: 'Доступен', en: 'Available', uk: 'Доступний', zh: '可用' },
+        lme_parser_status_auth: { ru: 'Ошибка ключа', en: 'Auth error', uk: 'Помилка ключа', zh: '密钥错误' },
+        lme_parser_status_network: { ru: 'Недоступен', en: 'Unavailable', uk: 'Недоступний', zh: '不可用' },
+        lme_parser_status_unknown: { ru: 'Не проверен', en: 'Unchecked', uk: 'Не перевірено', zh: '未检查' },
+        lme_parser_status_checking: { ru: 'Проверка', en: 'Checking', uk: 'Перевірка', zh: '检查中' },
+        lme_parser_lastcheck: { ru: 'Последняя проверка:', en: 'Last check:', uk: 'Остання перевірка:', zh: '上次检查：' },
+        lme_parser_version: { ru: 'Версия:', en: 'Version:', uk: 'Версія:', zh: '版本：' },
 
-      lme_pubtorr: { ru: 'Каталог TorrServer', en: 'TorrServer catalog', uk: 'Каталог TorrServer', zh: 'TorrServer 目录' },
-      lme_pubtorr_description: { ru: 'Бесплатные серверы от проекта LME', en: 'Free servers from the LME project', uk: 'Безкоштовні сервери від проєкту LME', zh: '来自 LME 项目的免费服务器' }
-    });
+        lme_pubtorr: { ru: 'Каталог TorrServer', en: 'TorrServer catalog', uk: 'Каталог TorrServer', zh: 'TorrServer 目录' },
+        lme_pubtorr_description: { ru: 'Бесплатные серверы от проекта LME', en: 'Free servers from the LME project', uk: 'Безкоштовні сервери від проєкту LME', zh: '来自 LME 项目的免费服务器' }
+      });
+    } catch (e) {}
   }
 
   /** =========================
@@ -38,7 +68,7 @@
   var parsersInfo = [
     { id: 'lampa_app', name: 'Lampa.app', settings: { url: 'lampa.app', key: '', parser_torrent_type: 'jackett' } },
     { id: 'jacred_viewbox_dev', name: 'Viewbox', settings: { url: 'jacred.viewbox.dev', key: 'viewbox', parser_torrent_type: 'jackett' } },
-    { id: 'unknown', name: 'Unknown', settings: { url: '188.119.113.252:9117', key: '1', parser_torrent_type: 'jackett' } },
+    { id: 'jackett_ip_188_119_113_252', name: 'Jackett (188.119.113.252)', settings: { url: '188.119.113.252:9117', key: '1', parser_torrent_type: 'jackett' } },
     { id: 'trs_my_to', name: 'Trs.my.to', settings: { url: 'trs.my.to:9118', key: '', parser_torrent_type: 'jackett' } },
     { id: 'jacred_my_to', name: 'Jacred.my.to', settings: { url: 'jacred.my.to', key: '', parser_torrent_type: 'jackett' } },
     { id: 'jacred_xyz', name: 'Jacred.xyz', settings: { url: 'jacred.xyz', key: '', parser_torrent_type: 'jackett' } },
@@ -58,14 +88,15 @@
   // прод настройки
   var CACHE_TTL = 10 * 60 * 1000;        // 10 минут
   var AJAX_TIMEOUT = 5500;               // чуть больше 5с
-  var CONCURRENCY = 3;                   // ✅ ограничение параллельности
-  var RETRY_COUNT = 1;                   // ✅ 1 повтор
-  var RETRY_DELAY_MS = 900;              // ✅ задержка
-  var SWR_WINDOW = 60 * 1000;            // ✅ stale-while-revalidate окно
+  var CONCURRENCY = 3;                   // ограничение параллельности
+  var RETRY_COUNT = 1;                   // 1 повтор
+  var RETRY_DELAY_MS = 900;              // задержка
+  var SWR_WINDOW = 60 * 1000;            // stale-while-revalidate окно
 
   var DEBUG_KEY = 'pubtorr_debug';
+
   function debugEnabled() {
-    return !!Lampa.Storage.get(DEBUG_KEY, false);
+    try { return !!Lampa.Storage.get(DEBUG_KEY, false); } catch (e) { return false; }
   }
   function log() {
     if (!debugEnabled()) return;
@@ -85,8 +116,10 @@
   function safeTrim(s) { return (s || '').toString().trim(); }
 
   function getProtocol() {
-    if (Lampa.Utils && typeof Lampa.Utils.protocol === 'function') return Lampa.Utils.protocol();
-    return location.protocol === 'https:' ? 'https://' : 'http://';
+    try {
+      if (Lampa.Utils && typeof Lampa.Utils.protocol === 'function') return Lampa.Utils.protocol();
+    } catch (e) {}
+    return (location.protocol === 'https:') ? 'https://' : 'http://';
   }
 
   function normalizeBaseUrl(raw) {
@@ -101,21 +134,21 @@
   }
 
   /** =========================
-   *  Endpoints fallback
+   *  Endpoints fallback (safe)
    *  ========================= */
   function getHealthPaths(parserType) {
-    // ✅ fallback путей (форки иногда отличаются)
+    // Prowlarr: API health/status (нужен apikey)
     if (parserType === 'prowlarr') {
       return [
-        '/api/v1/health',
-        '/api/v1/system/status' // fallback
+        { path: '/api/v1/health', needKey: true },
+        { path: '/api/v1/system/status', needKey: true }
       ];
     }
-    // jackett
+    // Jackett: UI ping без ключа (самый совместимый)
+    // (если CORS/SSL мешает — статус может быть unknown/network, но это лучше, чем "вечно недоступен" из-за неверного API)
     return [
-      '/api/v2.0/indexers/status:healthy/results',
-      '/api/v2.0/indexers/status:healthy',
-      '/api/v2.0/server/status' // fallback
+      { path: '/', needKey: false },
+      { path: '/UI/Dashboard', needKey: false }
     ];
   }
 
@@ -123,6 +156,7 @@
     var settings = (parser && parser.settings) || {};
     var parserType = settings.parser_torrent_type || 'jackett';
     if (parserType === 'prowlarr') return settings.key || '';
+    // спец-кейс как у старых конфигов (оставим, но для jackett он обычно не нужен для UI ping)
     if (settings.url === 'spawn.pp.ua:59117') return '2';
     return settings.key || '';
   }
@@ -135,16 +169,30 @@
     var parserType = settings.parser_torrent_type || 'jackett';
     var apiKey = getApiKey(parser);
     var paths = getHealthPaths(parserType);
+    var out = [];
 
-    return paths.map(function (p) {
-      return base + p + '?apikey=' + encodeQuery(apiKey);
-    });
+    for (var i = 0; i < paths.length; i++) {
+      var p = paths[i];
+      if (p.needKey) out.push(base + p.path + '?apikey=' + encodeQuery(apiKey));
+      else out.push(base + p.path);
+    }
+    return out;
   }
 
   function statusFromXhr(xhr) {
     if (!xhr) return STATUS.networkError;
+
+    // 0 — часто CORS/blocked. Это не равно "сервер умер".
+    if (xhr.status === 0) return STATUS.unknown;
+
     if (xhr.status === 200) return STATUS.ok;
-    if (xhr.status === 401) return STATUS.authError;
+
+    // auth
+    if (xhr.status === 401 || xhr.status === 403) return STATUS.authError;
+
+    // 404 — сервер жив, путь не тот
+    if (xhr.status === 404) return STATUS.unknown;
+
     return STATUS.networkError;
   }
 
@@ -156,7 +204,6 @@
     get: function (key) {
       var c = this.data[key];
       if (!c) return null;
-      // hard TTL
       if (Date.now() > c.expiresAt) return null;
       return c;
     },
@@ -188,10 +235,7 @@
             Promise.resolve().then(tasks[idx])
               .then(function (r) { results[idx] = r; })
               .catch(function (e) { results[idx] = e; })
-              .finally(function () {
-                active--;
-                next();
-              });
+              .finally(function () { active--; next(); });
           })(i);
           i++;
         }
@@ -202,7 +246,7 @@
   }
 
   /** =========================
-   *  Network: request with retries & fallback urls
+   *  Network: request with retries & fallback urls (NO async/await)
    *  ========================= */
   function ajaxOnce(url) {
     return new Promise(function (resolve) {
@@ -220,36 +264,53 @@
     return new Promise(function (r) { setTimeout(r, ms); });
   }
 
-  async function requestWithFallback(urls) {
+  function requestWithFallback(urls) {
     // urls: [primary, fallback1, ...]
-    for (var u = 0; u < urls.length; u++) {
-      var url = urls[u];
+    var index = 0;
 
-      for (var attempt = 0; attempt <= RETRY_COUNT; attempt++) {
-        var res = await ajaxOnce(url);
-        var st = statusFromXhr(res.xhr);
+    function tryUrl(u) {
+      var attempt = 0;
 
-        // ok/auth — считаем финалом
-        if (st === STATUS.ok || st === STATUS.authError) {
-          return { status: st, usedUrl: url };
-        }
+      function oneAttempt() {
+        return ajaxOnce(u).then(function (res) {
+          var st = statusFromXhr(res.xhr);
 
-        // networkError — retry
-        if (attempt < RETRY_COUNT) {
-          await delay(RETRY_DELAY_MS + attempt * 250);
-          continue;
-        }
+          // ok/auth — финал
+          if (st === STATUS.ok || st === STATUS.authError) {
+            return { status: st, usedUrl: u };
+          }
+
+          // network/unknown — retry
+          if (attempt < RETRY_COUNT) {
+            attempt++;
+            return delay(RETRY_DELAY_MS + (attempt * 250)).then(oneAttempt);
+          }
+
+          // fail -> next url
+          return null;
+        });
       }
-      // если по этому url не вышло — пробуем следующий fallback url
+
+      return oneAttempt();
     }
 
-    return { status: STATUS.networkError, usedUrl: urls[0] || '' };
+    function nextUrl() {
+      if (index >= urls.length) {
+        return Promise.resolve({ status: STATUS.networkError, usedUrl: urls[0] || '' });
+      }
+      var u = urls[index++];
+      return tryUrl(u).then(function (res) {
+        if (res) return res;
+        return nextUrl();
+      });
+    }
+
+    return nextUrl();
   }
 
   /** =========================
    *  Check alive (prod)
    *  ========================= */
-  // токен, чтобы старые проверки не перетирали новые
   var currentCheckToken = 0;
 
   function checkAlive(parsers) {
@@ -258,43 +319,48 @@
     var token = ++currentCheckToken;
     var results = {};
 
-    // создаём таски для пула
     var tasks = parsers.map(function (parser) {
-      return async function () {
+      return function () {
         var parserId = parser.id || parser.name || 'unknown';
         var urls = buildUrls(parser);
+
         if (!urls.length) {
           results[parserId] = STATUS.unknown;
-          return;
+          return Promise.resolve();
         }
 
-        // SWR: если есть свежий кеш — быстро покажем его
+        // SWR key — по primary url
         var primaryKey = cacheKey(parserId, urls[0]);
         var cached = cache.get(primaryKey);
+
         if (cached) {
           results[parserId] = cached.status;
 
-          // если кеш очень свежий — можно не обновлять сетью
+          // если свежий кеш — не трогаем сеть
           if (Date.now() - cached.updatedAt < SWR_WINDOW) {
             log('[PubTorr] SWR skip network for', parserId);
-            return;
+            return Promise.resolve();
           }
-          // иначе продолжаем — обновим в фоне
+          // иначе — обновим сетью
         }
 
-        var net = await requestWithFallback(urls);
+        return requestWithFallback(urls).then(function (net) {
+          if (token !== currentCheckToken) return;
 
-        // если это уже “устаревший” запуск — игнор
-        if (token !== currentCheckToken) return;
+          results[parserId] = net.status;
 
-        results[parserId] = net.status;
+          // Кэшируем по реально использованному url (чтобы fallback не "врал" первичному)
+          if (net.usedUrl) {
+            cache.set(cacheKey(parserId, net.usedUrl), net.status);
+          }
 
-        // кэшируем ok/auth (и даже network, но коротко? — оставим только ok/auth)
-        if (net.status === STATUS.ok || net.status === STATUS.authError) {
-          cache.set(primaryKey, net.status);
-        }
+          // и дополнительно, если это был primary — обновим primaryKey
+          if (net.usedUrl === urls[0] && (net.status === STATUS.ok || net.status === STATUS.authError || net.status === STATUS.unknown)) {
+            cache.set(primaryKey, net.status);
+          }
 
-        log('[PubTorr] check', parserId, '=>', net.status, 'url=', net.usedUrl);
+          log('[PubTorr] check', parserId, '=>', net.status, 'url=', net.usedUrl);
+        });
       };
     });
 
@@ -305,11 +371,14 @@
    *  Selection apply
    *  ========================= */
   function getSelectedParserId() {
-    return Lampa.Storage.get(STORAGE_KEY, NO_PARSER_ID);
+    try { return Lampa.Storage.get(STORAGE_KEY, NO_PARSER_ID); } catch (e) { return NO_PARSER_ID; }
   }
 
   function getParserById(parserId) {
-    return parsersInfo.find(function (p) { return p.id === parserId; });
+    for (var i = 0; i < parsersInfo.length; i++) {
+      if (parsersInfo[i].id === parserId) return parsersInfo[i];
+    }
+    return null;
   }
 
   function applySelectedParser(parserId) {
@@ -325,9 +394,11 @@
     var settings = selected.settings;
     var parserType = settings.parser_torrent_type || 'jackett';
 
-    Lampa.Storage.set(parserType === 'prowlarr' ? 'prowlarr_url' : 'jackett_url', settings.url);
-    Lampa.Storage.set(parserType === 'prowlarr' ? 'prowlarr_key' : 'jackett_key', settings.key || '');
-    Lampa.Storage.set('parser_torrent_type', parserType);
+    try {
+      Lampa.Storage.set(parserType === 'prowlarr' ? 'prowlarr_url' : 'jackett_url', settings.url);
+      Lampa.Storage.set(parserType === 'prowlarr' ? 'prowlarr_key' : 'jackett_key', settings.key || '');
+      Lampa.Storage.set('parser_torrent_type', parserType);
+    } catch (e) {}
 
     return true;
   }
@@ -345,9 +416,15 @@
     }
   }
 
+  function allStatusClasses() {
+    var s = '';
+    for (var k in STATUS_CLASS) if (STATUS_CLASS.hasOwnProperty(k)) s += STATUS_CLASS[k] + ' ';
+    return safeTrim(s);
+  }
+
   function applyStatus(item, status) {
-    var classes = Object.values(STATUS_CLASS).join(' ');
-    item.removeClass(classes);
+    var classes = allStatusClasses();
+    try { item.removeClass(classes); } catch (e) {}
     item.addClass(STATUS_CLASS[status] || STATUS_CLASS[STATUS.unknown]);
     item.find('.pubtorr-parser-modal__status').text(statusLabel(status));
 
@@ -382,13 +459,19 @@
   }
 
   function updateCurrentLabel(wrapper, selectedId, parsers) {
-    var current = parsers.find(function (p) { return p.id === selectedId; });
+    var current = null;
+    for (var i = 0; i < parsers.length; i++) {
+      if (parsers[i].id === selectedId) { current = parsers[i]; break; }
+    }
     var label = current ? current.name : Lampa.Lang.translate('lme_parser_none');
     wrapper.find('.pubtorr-parser-modal__current-value').text(label);
   }
 
   function updateSettingsSelectedLabel(selectedId, parsers) {
-    var current = parsers.find(function (p) { return p.id === selectedId; });
+    var current = null;
+    for (var i = 0; i < parsers.length; i++) {
+      if (parsers[i].id === selectedId) { current = parsers[i]; break; }
+    }
     var label = current ? current.name : Lampa.Lang.translate('lme_parser_none');
     $('.pubtorr-parser-selected').text(Lampa.Lang.translate('lme_parser_selected') + ': ' + label);
   }
@@ -397,9 +480,9 @@
     if (!ts) return '—';
     try {
       var d = new Date(ts);
-      var hh = String(d.getHours()).padStart(2, '0');
-      var mm = String(d.getMinutes()).padStart(2, '0');
-      var ss = String(d.getSeconds()).padStart(2, '0');
+      var hh = ('0' + d.getHours()).slice(-2);
+      var mm = ('0' + d.getMinutes()).slice(-2);
+      var ss = ('0' + d.getSeconds()).slice(-2);
       return hh + ':' + mm + ':' + ss;
     } catch (e) { return '—'; }
   }
@@ -435,13 +518,15 @@
 
     var list = modal.find('.pubtorr-parser-modal__list');
     var refreshAction = modal.find('.pubtorr-parser-modal__action');
-    var healthEnabled = Lampa.Storage.get(HEALTH_KEY, true);
+    var healthEnabled = true;
+    try { healthEnabled = Lampa.Storage.get(HEALTH_KEY, true); } catch (e) { healthEnabled = true; }
 
     parsers.forEach(function (parser) {
       var item = buildItem(parser);
 
+      // оставляем hover:enter как ты хотел (TV UX), но без лишней логики на "no_parser"
       item.on('hover:enter', function () {
-        Lampa.Storage.set(STORAGE_KEY, parser.id);
+        try { Lampa.Storage.set(STORAGE_KEY, parser.id); } catch (e) {}
         applySelection(list, parser.id);
         updateCurrentLabel(modal, parser.id, parsers);
         updateSettingsSelectedLabel(parser.id, parsers);
@@ -487,10 +572,9 @@
 
       var startedAt = Date.now();
       checkAlive(parsersInfo).then(function (statusMap) {
-        // если запустился новый токен — это игнорится внутри checkAlive, но UI обновим только свежим
         parserItems.each(function () {
           var item = $(this);
-          var parserId = item.attr('data-parser-id'); // ✅ корректно
+          var parserId = item.attr('data-parser-id');
           var st = statusMap[parserId] || STATUS.unknown;
           applyStatus(item, st);
         });
@@ -508,6 +592,18 @@
   function parserSetting() {
     applySelectedParser();
 
+    // Если сборка поддерживает — добавим компонент (иконка в настройках чтобы не было undefined)
+    try {
+      if (Lampa.SettingsApi && Lampa.SettingsApi.addComponent) {
+        Lampa.SettingsApi.addComponent({
+          component: 'pubtorr',
+          name: (Lampa.Manifest && Lampa.Manifest.name) ? Lampa.Manifest.name : 'LME PubTorr',
+          icon: 'plugin'
+        });
+      }
+    } catch (e) {}
+
+    // Встроим кнопку в стандартный компонент "parser" — как у тебя было
     Lampa.SettingsApi.addParam({
       component: 'parser',
       param: { name: 'lme_parser_manage', type: 'button' },
@@ -519,14 +615,17 @@
       onRender: function (item) {
         applySelectedParser();
         var selectedId = getSelectedParserId();
-        var current = parsersInfo.find(function (p) { return p.id === selectedId; });
+        var current = getParserById(selectedId);
         var label = current ? current.name : Lampa.Lang.translate('lme_parser_none');
         item.find('.pubtorr-parser-selected').text(Lampa.Lang.translate('lme_parser_selected') + ': ' + label);
 
         setTimeout(function () {
           var parserUse = $('div[data-name="parser_use"]').first();
           if (parserUse.length) item.insertAfter(parserUse);
-          if (Lampa.Storage.field('parser_use')) item.show(); else item.hide();
+          try {
+            if (Lampa.Storage.field('parser_use')) item.show();
+            else item.hide();
+          } catch (e) {}
         });
       }
     });
@@ -539,14 +638,29 @@
         setTimeout(function () {
           var manage = $('div[data-name="lme_parser_manage"]').first();
           if (manage.length) item.insertAfter(manage);
-          if (Lampa.Storage.field('parser_use')) item.show(); else item.hide();
+          try {
+            if (Lampa.Storage.field('parser_use')) item.show();
+            else item.hide();
+          } catch (e) {}
         });
       }
     });
+
+    // Debug toggle (по желанию)
+    try {
+      Lampa.SettingsApi.addParam({
+        component: 'parser',
+        param: { name: DEBUG_KEY, type: 'trigger', "default": false },
+        field: { name: 'PubTorr Debug', description: 'Логи проверок в console.log' },
+        onChange: function (v) {
+          try { Lampa.Storage.set(DEBUG_KEY, !!v); } catch (e) {}
+        }
+      });
+    } catch (e) {}
   }
 
   /** =========================
-   *  Styles (with modern checking)
+   *  Styles (modern checking)
    *  ========================= */
   function injectStyles() {
     if (window.__pubtorr_style_injected) return;
@@ -579,7 +693,6 @@
 .pubtorr-parser-modal__item.status-checking{--pubtorr-status-color:var(--pubtorr-status-checking)}\
 @media(max-width:600px){.pubtorr-parser-modal__head{flex-direction:column;align-items:flex-start}.pubtorr-parser-modal__actions{width:100%;justify-content:space-between}.pubtorr-parser-modal__item{flex-direction:column;align-items:flex-start}.pubtorr-parser-modal__status{text-align:left}}\
 \
-/* modern checking */\
 @keyframes pubtorrPulse{0%{transform:translateY(-50%) scale(.9);opacity:.55}50%{transform:translateY(-50%) scale(1.12);opacity:1}100%{transform:translateY(-50%) scale(.9);opacity:.55}}\
 @keyframes pubtorrShimmer{0%{transform:translateX(-120%);opacity:0}15%{opacity:.9}60%{opacity:.9}100%{transform:translateX(140%);opacity:0}}\
 @keyframes pubtorrDotsA{0%{content:\'\'}25%{content:\'.\'}50%{content:\'..\'}75%{content:\'...\'}100%{content:\'\';}}\
@@ -589,7 +702,6 @@
 .pubtorr-parser-modal__item.status-checking .pubtorr-parser-modal__status{position:relative;opacity:.85}\
 .pubtorr-parser-modal__item.status-checking .pubtorr-parser-modal__status::after{content:\'\';display:inline-block;width:1.2em;margin-left:.15em;text-align:left;opacity:.8;animation:pubtorrDotsA 1.1s steps(1,end) infinite}\
 \
-/* result flash */\
 @keyframes pubtorrResultFlashOk{0%{box-shadow:0 0 0 rgba(25,195,125,0)}30%{box-shadow:0 0 .9em rgba(25,195,125,.25)}100%{box-shadow:0 0 0 rgba(25,195,125,0)}}\
 @keyframes pubtorrResultFlashBad{0%{box-shadow:0 0 0 rgba(255,77,79,0)}30%{box-shadow:0 0 .9em rgba(255,77,79,.22)}100%{box-shadow:0 0 0 rgba(255,77,79,0)}}\
 .pubtorr-flash-ok{animation:pubtorrResultFlashOk .55s ease-out}\
@@ -610,14 +722,16 @@
 
   function startPlugin() {
     window.plugin_lmepublictorr_ready = true;
+
     if (window.appready) add();
-    else {
+    else if (Lampa.Listener && Lampa.Listener.follow) {
       Lampa.Listener.follow('app', function (e) {
         if (e.type === 'ready') add();
       });
+    } else {
+      setTimeout(add, 1200);
     }
   }
 
-  // анти-двойной запуск
   if (!window.plugin_lmepublictorr_ready) startPlugin();
 })();
