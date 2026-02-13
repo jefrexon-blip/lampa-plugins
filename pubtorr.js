@@ -2,111 +2,35 @@
   'use strict';
 
   /** =========================
+   *  Meta
+   *  ========================= */
+  var PUBTORR_VERSION = '1.0.0-prod';
+  var PUBTORR_BUILD = '2026-02-13';
+
+  /** =========================
    *  i18n
    *  ========================= */
   function translate() {
     Lampa.Lang.add({
-      lme_parser: {
-        ru: 'Каталог парсеров',
-        en: 'Parsers catalog',
-        uk: 'Каталог парсерів',
-        zh: '解析器目录'
-      },
-      lme_parser_description: {
-        ru: 'Нажмите для выбора парсера из ',
-        en: 'Click to select a parser from the ',
-        uk: 'Натисніть для вибору парсера з ',
-        zh: '单击以从可用的 '
-      },
-      lme_parser_current: {
-        ru: 'Текущий выбор:',
-        en: 'Current selection:',
-        uk: 'Поточний вибір:',
-        zh: '当前选择：'
-      },
-      lme_parser_selected: {
-        ru: 'Выбрано',
-        en: 'Selected',
-        uk: 'Обрано',
-        zh: '已选择'
-      },
-      lme_parser_refresh: {
-        ru: 'Обновить проверку',
-        en: 'Refresh check',
-        uk: 'Оновити перевірку',
-        zh: '刷新检测'
-      },
-      lme_parser_none: {
-        ru: 'Не выбран',
-        en: 'Not selected',
-        uk: 'Не вибрано',
-        zh: '未选择'
-      },
-      lme_parser_none_description: {
-        ru: 'Без активного парсера',
-        en: 'No active parser',
-        uk: 'Без активного парсера',
-        zh: '未启用解析器'
-      },
-      lme_parser_health: {
-        ru: 'Индикация состояния парсеров',
-        en: 'Parser health indicator',
-        uk: 'Індикація стану парсерів',
-        zh: '解析器状态指示'
-      },
-      lme_parser_status_ok: {
-        ru: 'Доступен',
-        en: 'Available',
-        uk: 'Доступний',
-        zh: '可用'
-      },
-      lme_parser_status_auth: {
-        ru: 'Ошибка ключа',
-        en: 'Auth error',
-        uk: 'Помилка ключа',
-        zh: '密钥错误'
-      },
-      lme_parser_status_network: {
-        ru: 'Недоступен',
-        en: 'Unavailable',
-        uk: 'Недоступний',
-        zh: '不可用'
-      },
-      lme_parser_status_unknown: {
-        ru: 'Не проверен',
-        en: 'Unchecked',
-        uk: 'Не перевірено',
-        zh: '未检查'
-      },
-      lme_parser_status_checking: {
-        ru: 'Проверка',
-        en: 'Checking',
-        uk: 'Перевірка',
-        zh: '检查中'
-      },
+      lme_parser: { ru: 'Каталог парсеров', en: 'Parsers catalog', uk: 'Каталог парсерів', zh: '解析器目录' },
+      lme_parser_description: { ru: 'Нажмите для выбора парсера из ', en: 'Click to select a parser from the ', uk: 'Натисніть для вибору парсера з ', zh: '单击以从可用的 ' },
+      lme_parser_current: { ru: 'Текущий выбор:', en: 'Current selection:', uk: 'Поточний вибір:', zh: '当前选择：' },
+      lme_parser_selected: { ru: 'Выбрано', en: 'Selected', uk: 'Обрано', zh: '已选择' },
+      lme_parser_refresh: { ru: 'Обновить проверку', en: 'Refresh check', uk: 'Оновити перевірку', zh: '刷新检测' },
+      lme_parser_none: { ru: 'Не выбран', en: 'Not selected', uk: 'Не вибрано', zh: '未选择' },
+      lme_parser_health: { ru: 'Индикация состояния парсеров', en: 'Parser health indicator', uk: 'Індикація стану парсерів', zh: '解析器状态指示' },
+      lme_parser_status_ok: { ru: 'Доступен', en: 'Available', uk: 'Доступний', zh: '可用' },
+      lme_parser_status_auth: { ru: 'Ошибка ключа', en: 'Auth error', uk: 'Помилка ключа', zh: '密钥错误' },
+      lme_parser_status_network: { ru: 'Недоступен', en: 'Unavailable', uk: 'Недоступний', zh: '不可用' },
+      lme_parser_status_unknown: { ru: 'Не проверен', en: 'Unchecked', uk: 'Не перевірено', zh: '未检查' },
+      lme_parser_status_checking: { ru: 'Проверка', en: 'Checking', uk: 'Перевірка', zh: '检查中' },
+      lme_parser_lastcheck: { ru: 'Последняя проверка:', en: 'Last check:', uk: 'Остання перевірка:', zh: '上次检查：' },
+      lme_parser_version: { ru: 'Версия:', en: 'Version:', uk: 'Версія:', zh: '版本：' },
 
-      lme_pubtorr: {
-        ru: 'Каталог TorrServer',
-        en: 'TorrServer catalog',
-        uk: 'Каталог TorrServer',
-        zh: 'TorrServer 目录'
-      },
-      lme_pubtorr_description: {
-        ru: 'Бесплатные серверы от проекта LME',
-        en: 'Free servers from the LME project',
-        uk: 'Безкоштовні сервери від проєкту LME',
-        zh: '来自 LME 项目的免费服务器'
-      },
-      lme_pubtorr_firstrun: {
-        ru: "Привет! Ты установил плагин LME PubTorr, учти что если стоит Mods's то в разделе парсеров будет ошибка, которая не влияет на работу. Хочешь избавиться - оставь или LME PubTorr или Mods's.",
-        en: "Hello! You have installed the LME PubTorr plugin. Note that if Mods's is enabled, there will be an error in the parsers section that does not affect functionality. If you want to get rid of it, keep either LME PubTorr or Mods's.",
-        uk: "Привіт! Ви встановили плагін LME PubTorr, врахуйте, що якщо активовано Mods's, то в розділі парсерів буде помилка, яка не впливає на роботу. Якщо хочете позбутися - залиште або LME PubTorr, або Mods's.",
-        zh: "你好！你安装了LME PubTorr插件，请注意，如果启用了Mods's，解析器部分将出现错误，但这不会影响功能。如果你想摆脱它，请保留LME PubTorr或Mods's。"
-      }
+      lme_pubtorr: { ru: 'Каталог TorrServer', en: 'TorrServer catalog', uk: 'Каталог TorrServer', zh: 'TorrServer 目录' },
+      lme_pubtorr_description: { ru: 'Бесплатные серверы от проекта LME', en: 'Free servers from the LME project', uk: 'Безкоштовні сервери від проєкту LME', zh: '来自 LME 项目的免费服务器' }
     });
   }
-
-  var Lang = { translate: translate };
 
   /** =========================
    *  Parsers list
@@ -123,22 +47,33 @@
   ];
 
   /** =========================
-   *  Constants & helpers
+   *  Constants & flags
    *  ========================= */
-  var STATUS = {
-    ok: 'ok',
-    authError: 'auth_error',
-    networkError: 'network_error',
-    unknown: 'unknown',
-    checking: 'checking'
-  };
+  var STATUS = { ok: 'ok', authError: 'auth_error', networkError: 'network_error', unknown: 'unknown', checking: 'checking' };
 
   var STORAGE_KEY = 'lme_url_two';
   var HEALTH_KEY = 'lme_parser_health';
   var NO_PARSER_ID = 'no_parser';
 
-  var CACHE_TTL = 10 * 60 * 1000; // 10 min
-  var AJAX_TIMEOUT = 5000;
+  // прод настройки
+  var CACHE_TTL = 10 * 60 * 1000;        // 10 минут
+  var AJAX_TIMEOUT = 5500;               // чуть больше 5с
+  var CONCURRENCY = 3;                   // ✅ ограничение параллельности
+  var RETRY_COUNT = 1;                   // ✅ 1 повтор
+  var RETRY_DELAY_MS = 900;              // ✅ задержка
+  var SWR_WINDOW = 60 * 1000;            // ✅ stale-while-revalidate окно
+
+  var DEBUG_KEY = 'pubtorr_debug';
+  function debugEnabled() {
+    return !!Lampa.Storage.get(DEBUG_KEY, false);
+  }
+  function log() {
+    if (!debugEnabled()) return;
+    try { console.log.apply(console, arguments); } catch (e) {}
+  }
+  function warn() {
+    try { console.warn.apply(console, arguments); } catch (e) {}
+  }
 
   var STATUS_CLASS = {};
   STATUS_CLASS[STATUS.ok] = 'status-ok';
@@ -147,9 +82,7 @@
   STATUS_CLASS[STATUS.unknown] = 'status-unknown';
   STATUS_CLASS[STATUS.checking] = 'status-checking';
 
-  function safeTrim(s) {
-    return (s || '').toString().trim();
-  }
+  function safeTrim(s) { return (s || '').toString().trim(); }
 
   function getProtocol() {
     if (Lampa.Utils && typeof Lampa.Utils.protocol === 'function') return Lampa.Utils.protocol();
@@ -159,9 +92,7 @@
   function normalizeBaseUrl(raw) {
     var url = safeTrim(raw);
     if (!url) return '';
-    // если уже есть протокол — оставляем
     if (/^https?:\/\//i.test(url)) return url.replace(/\/+$/, '');
-    // иначе добавим протокол
     return (getProtocol() + url).replace(/\/+$/, '');
   }
 
@@ -169,25 +100,45 @@
     try { return encodeURIComponent(v || ''); } catch (e) { return ''; }
   }
 
-  function createHealthCheckUrl(parser) {
-    if (!parser || !parser.settings) return null;
+  /** =========================
+   *  Endpoints fallback
+   *  ========================= */
+  function getHealthPaths(parserType) {
+    // ✅ fallback путей (форки иногда отличаются)
+    if (parserType === 'prowlarr') {
+      return [
+        '/api/v1/health',
+        '/api/v1/system/status' // fallback
+      ];
+    }
+    // jackett
+    return [
+      '/api/v2.0/indexers/status:healthy/results',
+      '/api/v2.0/indexers/status:healthy',
+      '/api/v2.0/server/status' // fallback
+    ];
+  }
 
+  function getApiKey(parser) {
+    var settings = (parser && parser.settings) || {};
+    var parserType = settings.parser_torrent_type || 'jackett';
+    if (parserType === 'prowlarr') return settings.key || '';
+    if (settings.url === 'spawn.pp.ua:59117') return '2';
+    return settings.key || '';
+  }
+
+  function buildUrls(parser) {
+    if (!parser || !parser.settings) return [];
     var settings = parser.settings;
     var base = normalizeBaseUrl(settings.url);
-    if (!base) return null;
-
+    if (!base) return [];
     var parserType = settings.parser_torrent_type || 'jackett';
+    var apiKey = getApiKey(parser);
+    var paths = getHealthPaths(parserType);
 
-    var apiKey = '';
-    if (parserType === 'prowlarr') apiKey = settings.key || '';
-    else if (settings.url === 'spawn.pp.ua:59117') apiKey = '2';
-    else apiKey = settings.key || '';
-
-    var path = (parserType === 'prowlarr')
-      ? '/api/v1/health'
-      : '/api/v2.0/indexers/status:healthy/results';
-
-    return base + path + '?apikey=' + encodeQuery(apiKey);
+    return paths.map(function (p) {
+      return base + p + '?apikey=' + encodeQuery(apiKey);
+    });
   }
 
   function statusFromXhr(xhr) {
@@ -198,17 +149,23 @@
   }
 
   /** =========================
-   *  Cache
+   *  Cache (with SWR)
    *  ========================= */
   var cache = {
     data: {},
     get: function (key) {
       var c = this.data[key];
-      if (c && Date.now() < c.expiresAt) return c;
-      return null;
+      if (!c) return null;
+      // hard TTL
+      if (Date.now() > c.expiresAt) return null;
+      return c;
     },
     set: function (key, status) {
-      this.data[key] = { status: status, expiresAt: Date.now() + CACHE_TTL };
+      this.data[key] = {
+        status: status,
+        updatedAt: Date.now(),
+        expiresAt: Date.now() + CACHE_TTL
+      };
     }
   };
 
@@ -217,51 +174,131 @@
   }
 
   /** =========================
-   *  Health check
+   *  Simple concurrency limiter
    *  ========================= */
+  function runPool(tasks, limit) {
+    limit = Math.max(1, limit || 1);
+    var i = 0, active = 0;
+    var results = [];
+    return new Promise(function (resolve) {
+      function next() {
+        while (active < limit && i < tasks.length) {
+          (function (idx) {
+            active++;
+            Promise.resolve().then(tasks[idx])
+              .then(function (r) { results[idx] = r; })
+              .catch(function (e) { results[idx] = e; })
+              .finally(function () {
+                active--;
+                next();
+              });
+          })(i);
+          i++;
+        }
+        if (i >= tasks.length && active === 0) resolve(results);
+      }
+      next();
+    });
+  }
+
+  /** =========================
+   *  Network: request with retries & fallback urls
+   *  ========================= */
+  function ajaxOnce(url) {
+    return new Promise(function (resolve) {
+      $.ajax({
+        url: url,
+        method: 'GET',
+        timeout: AJAX_TIMEOUT,
+        success: function (_resp, _text, xhr) { resolve({ ok: true, xhr: xhr }); },
+        error: function (xhr) { resolve({ ok: false, xhr: xhr }); }
+      });
+    });
+  }
+
+  function delay(ms) {
+    return new Promise(function (r) { setTimeout(r, ms); });
+  }
+
+  async function requestWithFallback(urls) {
+    // urls: [primary, fallback1, ...]
+    for (var u = 0; u < urls.length; u++) {
+      var url = urls[u];
+
+      for (var attempt = 0; attempt <= RETRY_COUNT; attempt++) {
+        var res = await ajaxOnce(url);
+        var st = statusFromXhr(res.xhr);
+
+        // ok/auth — считаем финалом
+        if (st === STATUS.ok || st === STATUS.authError) {
+          return { status: st, usedUrl: url };
+        }
+
+        // networkError — retry
+        if (attempt < RETRY_COUNT) {
+          await delay(RETRY_DELAY_MS + attempt * 250);
+          continue;
+        }
+      }
+      // если по этому url не вышло — пробуем следующий fallback url
+    }
+
+    return { status: STATUS.networkError, usedUrl: urls[0] || '' };
+  }
+
+  /** =========================
+   *  Check alive (prod)
+   *  ========================= */
+  // токен, чтобы старые проверки не перетирали новые
+  var currentCheckToken = 0;
+
   function checkAlive(parsers) {
     if (!Array.isArray(parsers) || !parsers.length) return Promise.resolve({});
 
+    var token = ++currentCheckToken;
     var results = {};
-    var requests = parsers.map(function (parser) {
-      return new Promise(function (resolve) {
-        var url = createHealthCheckUrl(parser);
-        var parserId = parser.id || parser.name || 'unknown';
 
-        if (!url) {
+    // создаём таски для пула
+    var tasks = parsers.map(function (parser) {
+      return async function () {
+        var parserId = parser.id || parser.name || 'unknown';
+        var urls = buildUrls(parser);
+        if (!urls.length) {
           results[parserId] = STATUS.unknown;
-          resolve();
           return;
         }
 
-        var key = cacheKey(parserId, url);
-        var cached = cache.get(key);
+        // SWR: если есть свежий кеш — быстро покажем его
+        var primaryKey = cacheKey(parserId, urls[0]);
+        var cached = cache.get(primaryKey);
         if (cached) {
           results[parserId] = cached.status;
-          resolve();
-          return;
+
+          // если кеш очень свежий — можно не обновлять сетью
+          if (Date.now() - cached.updatedAt < SWR_WINDOW) {
+            log('[PubTorr] SWR skip network for', parserId);
+            return;
+          }
+          // иначе продолжаем — обновим в фоне
         }
 
-        $.ajax({
-          url: url,
-          method: 'GET',
-          timeout: AJAX_TIMEOUT,
-          success: function (_resp, _text, xhr) {
-            var st = statusFromXhr(xhr);
-            // кэшируем ok/auth (а сетевые — нет, чтобы быстрее “оживали”)
-            if (xhr && (xhr.status === 200 || xhr.status === 401)) cache.set(key, st);
-            results[parserId] = st;
-            resolve();
-          },
-          error: function (xhr) {
-            results[parserId] = statusFromXhr(xhr);
-            resolve();
-          }
-        });
-      });
+        var net = await requestWithFallback(urls);
+
+        // если это уже “устаревший” запуск — игнор
+        if (token !== currentCheckToken) return;
+
+        results[parserId] = net.status;
+
+        // кэшируем ok/auth (и даже network, но коротко? — оставим только ok/auth)
+        if (net.status === STATUS.ok || net.status === STATUS.authError) {
+          cache.set(primaryKey, net.status);
+        }
+
+        log('[PubTorr] check', parserId, '=>', net.status, 'url=', net.usedUrl);
+      };
     });
 
-    return Promise.allSettled(requests).then(function () { return results; });
+    return runPool(tasks, CONCURRENCY).then(function () { return results; });
   }
 
   /** =========================
@@ -281,7 +318,7 @@
 
     var selected = getParserById(id);
     if (!selected || !selected.settings) {
-      console.warn('PubTorr: parser not found', id);
+      warn('PubTorr: parser not found', id);
       return false;
     }
 
@@ -296,7 +333,7 @@
   }
 
   /** =========================
-   *  UI helpers
+   *  UI
    *  ========================= */
   function statusLabel(status) {
     switch (status) {
@@ -314,7 +351,7 @@
     item.addClass(STATUS_CLASS[status] || STATUS_CLASS[STATUS.unknown]);
     item.find('.pubtorr-parser-modal__status').text(statusLabel(status));
 
-    // ✅ optional premium flash on result
+    // flash on result
     item.removeClass('pubtorr-flash-ok pubtorr-flash-bad');
     if (status === STATUS.ok) {
       item.addClass('pubtorr-flash-ok');
@@ -353,13 +390,20 @@
   function updateSettingsSelectedLabel(selectedId, parsers) {
     var current = parsers.find(function (p) { return p.id === selectedId; });
     var label = current ? current.name : Lampa.Lang.translate('lme_parser_none');
-    var text = Lampa.Lang.translate('lme_parser_selected') + ': ' + label;
-    $('.pubtorr-parser-selected').text(text);
+    $('.pubtorr-parser-selected').text(Lampa.Lang.translate('lme_parser_selected') + ': ' + label);
   }
 
-  /** =========================
-   *  Modal
-   *  ========================= */
+  function formatTime(ts) {
+    if (!ts) return '—';
+    try {
+      var d = new Date(ts);
+      var hh = String(d.getHours()).padStart(2, '0');
+      var mm = String(d.getMinutes()).padStart(2, '0');
+      var ss = String(d.getSeconds()).padStart(2, '0');
+      return hh + ':' + mm + ':' + ss;
+    } catch (e) { return '—'; }
+  }
+
   function openParserModal() {
     var parsers = [{ id: NO_PARSER_ID, name: Lampa.Lang.translate('lme_parser_none') }].concat(parsersInfo.slice());
     var selectedId = getSelectedParserId();
@@ -372,6 +416,10 @@
             '<div class="pubtorr-parser-modal__current-value"></div>' +
           '</div>' +
           '<div class="pubtorr-parser-modal__actions">' +
+            '<div class="pubtorr-parser-modal__meta">' +
+              '<div class="pubtorr-meta-line">' + Lampa.Lang.translate('lme_parser_version') + ' ' + PUBTORR_VERSION + ' (' + PUBTORR_BUILD + ')</div>' +
+              '<div class="pubtorr-meta-line"><span class="pubtorr-lastcheck-label">' + Lampa.Lang.translate('lme_parser_lastcheck') + '</span> <span class="pubtorr-lastcheck-value">—</span></div>' +
+            '</div>' +
             '<div class="pubtorr-parser-modal__action selector">' + Lampa.Lang.translate('lme_parser_refresh') + '</div>' +
           '</div>' +
         '</div>' +
@@ -397,9 +445,7 @@
         applySelection(list, parser.id);
         updateCurrentLabel(modal, parser.id, parsers);
         updateSettingsSelectedLabel(parser.id, parsers);
-
-        if (parser.id === NO_PARSER_ID) return;
-        applySelectedParser(parser.id);
+        if (parser.id !== NO_PARSER_ID) applySelectedParser(parser.id);
       });
 
       list.append(item);
@@ -409,14 +455,14 @@
     updateCurrentLabel(modal, selectedId, parsers);
     updateSettingsSelectedLabel(selectedId, parsers);
 
-    var actionableItems = list.find('.pubtorr-parser-modal__item').first();
+    var actionable = list.find('.pubtorr-parser-modal__item').first();
 
     Lampa.Modal.open({
       title: Lampa.Lang.translate('lme_parser'),
       html: modal,
       size: 'medium',
       scroll_to_center: true,
-      select: actionableItems,
+      select: actionable,
       onBack: function () {
         Lampa.Modal.close();
         Lampa.Controller.toggle('settings_component');
@@ -430,30 +476,29 @@
     }
 
     var parserItems = list.find('.pubtorr-parser-modal__item').not('[data-parser-id="' + NO_PARSER_ID + '"]');
+    var lastCheckNode = modal.find('.pubtorr-lastcheck-value');
 
     function setChecking() {
-      parserItems.each(function () {
-        applyStatus($(this), STATUS.checking);
-      });
+      parserItems.each(function () { applyStatus($(this), STATUS.checking); });
     }
 
     function runChecks() {
       setChecking();
+
+      var startedAt = Date.now();
       checkAlive(parsersInfo).then(function (statusMap) {
+        // если запустился новый токен — это игнорится внутри checkAlive, но UI обновим только свежим
         parserItems.each(function () {
           var item = $(this);
-          // ✅ FIX: правильное чтение data-parser-id
-          var parserId = item.attr('data-parser-id');
+          var parserId = item.attr('data-parser-id'); // ✅ корректно
           var st = statusMap[parserId] || STATUS.unknown;
           applyStatus(item, st);
         });
+        lastCheckNode.text(formatTime(startedAt));
       });
     }
 
-    refreshAction.on('hover:enter', function () {
-      runChecks();
-    });
-
+    refreshAction.on('hover:enter', function () { runChecks(); });
     runChecks();
   }
 
@@ -470,16 +515,12 @@
         name: Lampa.Lang.translate('lme_parser'),
         description: Lampa.Lang.translate('lme_parser_description') + ' ' + parsersInfo.length + '<div class="pubtorr-parser-selected"></div>'
       },
-      onChange: function () {
-        openParserModal();
-      },
+      onChange: function () { openParserModal(); },
       onRender: function (item) {
         applySelectedParser();
-
         var selectedId = getSelectedParserId();
         var current = parsersInfo.find(function (p) { return p.id === selectedId; });
         var label = current ? current.name : Lampa.Lang.translate('lme_parser_none');
-
         item.find('.pubtorr-parser-selected').text(Lampa.Lang.translate('lme_parser_selected') + ': ' + label);
 
         setTimeout(function () {
@@ -504,18 +545,21 @@
     });
   }
 
-  var Parser = { parserSetting: parserSetting };
-
   /** =========================
-   *  Styles (includes checking animations)
+   *  Styles (with modern checking)
    *  ========================= */
   function injectStyles() {
+    if (window.__pubtorr_style_injected) return;
+    window.__pubtorr_style_injected = true;
+
     Lampa.Template.add('pubtorr_style', '\
 <style>\
 .pubtorr-parser-modal{--pubtorr-status-ok:#19c37d;--pubtorr-status-auth:#ff4d4f;--pubtorr-status-network:#ff4d4f;--pubtorr-status-unknown:#8c8c8c;--pubtorr-status-checking:#f5a623;--pubtorr-selected-border:#fff;display:flex;flex-direction:column;gap:1em}\
-.pubtorr-parser-modal__head{display:flex;align-items:center;justify-content:space-between;gap:1em}\
+.pubtorr-parser-modal__head{display:flex;align-items:flex-start;justify-content:space-between;gap:1em}\
 .pubtorr-parser-modal__current-label{font-size:.9em;opacity:.7}\
 .pubtorr-parser-modal__current-value{font-size:1.1em}\
+.pubtorr-parser-modal__actions{display:flex;align-items:flex-start;gap:.8em}\
+.pubtorr-parser-modal__meta{display:flex;flex-direction:column;gap:.25em;opacity:.75;font-size:.85em}\
 .pubtorr-parser-modal__action{padding:.5em .9em;border-radius:.6em;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2)}\
 .pubtorr-parser-modal__action.focus{border-color:var(--pubtorr-selected-border)}\
 .pubtorr-parser-modal__list{display:flex;flex-direction:column;gap:.6em}\
@@ -533,9 +577,9 @@
 .pubtorr-parser-modal__item.status-network-error,.pubtorr-parser-modal__legend-item.status-network-error{--pubtorr-status-color:var(--pubtorr-status-network)}\
 .pubtorr-parser-modal__item.status-unknown,.pubtorr-parser-modal__legend-item.status-unknown{--pubtorr-status-color:var(--pubtorr-status-unknown)}\
 .pubtorr-parser-modal__item.status-checking{--pubtorr-status-color:var(--pubtorr-status-checking)}\
-@media(max-width:600px){.pubtorr-parser-modal__head{flex-direction:column;align-items:flex-start}.pubtorr-parser-modal__item{flex-direction:column;align-items:flex-start}.pubtorr-parser-modal__status{text-align:left}}\
+@media(max-width:600px){.pubtorr-parser-modal__head{flex-direction:column;align-items:flex-start}.pubtorr-parser-modal__actions{width:100%;justify-content:space-between}.pubtorr-parser-modal__item{flex-direction:column;align-items:flex-start}.pubtorr-parser-modal__status{text-align:left}}\
 \
-/* ===== Modern checking animation ===== */\
+/* modern checking */\
 @keyframes pubtorrPulse{0%{transform:translateY(-50%) scale(.9);opacity:.55}50%{transform:translateY(-50%) scale(1.12);opacity:1}100%{transform:translateY(-50%) scale(.9);opacity:.55}}\
 @keyframes pubtorrShimmer{0%{transform:translateX(-120%);opacity:0}15%{opacity:.9}60%{opacity:.9}100%{transform:translateX(140%);opacity:0}}\
 @keyframes pubtorrDotsA{0%{content:\'\'}25%{content:\'.\'}50%{content:\'..\'}75%{content:\'...\'}100%{content:\'\';}}\
@@ -558,12 +602,10 @@
   /** =========================
    *  Boot
    *  ========================= */
-  Lampa.Platform.tv();
-
   function add() {
-    Lang.translate();
+    translate();
     injectStyles();
-    Parser.parserSetting();
+    parserSetting();
   }
 
   function startPlugin() {
@@ -576,5 +618,6 @@
     }
   }
 
+  // анти-двойной запуск
   if (!window.plugin_lmepublictorr_ready) startPlugin();
 })();
