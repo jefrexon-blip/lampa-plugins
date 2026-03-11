@@ -1,37 +1,37 @@
 [
   {
     "id": "interface_mod",
-    "name": "Interface Atelier",
+    "name": "atelier",
     "version": "3.0.0",
-    "entry": "https://jefrexon-blip.github.io/lampa-plugins/interface_mod.js",
+    "entry": "https://jefrexon-blip.github.io/lampa-plugins/atelier.js",
     "description": "Визуальная переработка интерфейса Lampa, карточек и full-card."
   },
   {
     "id": "rating",
-    "name": "CineScore",
+    "name": "score",
     "version": "3.0.0",
-    "entry": "https://jefrexon-blip.github.io/lampa-plugins/rating.js",
+    "entry": "https://jefrexon-blip.github.io/lampa-plugins/score.js",
     "description": "Показ и обновление рейтингов KP и IMDb в карточке фильма или сериала."
   },
   {
     "id": "pubtorr",
-    "name": "Parser Atlas",
+    "name": "atlas",
     "version": "1.0.1-prod",
-    "entry": "https://jefrexon-blip.github.io/lampa-plugins/pubtorr.js",
+    "entry": "https://jefrexon-blip.github.io/lampa-plugins/atlas.js",
     "description": "Каталог публичных парсеров и серверов TorrServer."
   },
   {
     "id": "ts_preload",
-    "name": "TorrServer Pulse",
+    "name": "pulse",
     "version": "1.0.0",
-    "entry": "https://jefrexon-blip.github.io/lampa-plugins/ts-preload.js",
+    "entry": "https://jefrexon-blip.github.io/lampa-plugins/pulse.js",
     "description": "Плагин preload для TorrServer."
   },
   {
     "id": "parser_loader",
-    "name": "Atlas Loader",
+    "name": "loader",
     "version": "1.0.0-prod",
-    "entry": "https://jefrexon-blip.github.io/lampa-plugins/Parser.js",
-    "description": "Лёгкий загрузчик плагина Parser Atlas."
+    "entry": "https://jefrexon-blip.github.io/lampa-plugins/loader.js",
+    "description": "Лёгкий загрузчик плагина каталога парсеров."
   }
 ]

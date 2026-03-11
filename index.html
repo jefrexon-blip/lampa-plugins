@@ -17,10 +17,7 @@
       --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -31,13 +28,11 @@
         radial-gradient(circle at top right, rgba(119, 240, 197, 0.14), transparent 26%),
         linear-gradient(180deg, #09111d 0%, #050a12 100%);
     }
-
     .shell {
       width: min(1120px, calc(100% - 32px));
       margin: 0 auto;
       padding: 48px 0 56px;
     }
-
     .hero {
       padding: 32px;
       border: 1px solid var(--card-border);
@@ -46,7 +41,6 @@
       backdrop-filter: blur(22px);
       box-shadow: var(--shadow);
     }
-
     .eyebrow {
       display: inline-flex;
       align-items: center;
@@ -59,13 +53,11 @@
       color: var(--accent-2);
       background: rgba(119, 240, 197, 0.08);
     }
-
     h1 {
       margin: 18px 0 12px;
       font-size: clamp(34px, 6vw, 62px);
       line-height: 0.98;
     }
-
     .lead {
       max-width: 760px;
       margin: 0;
@@ -73,14 +65,12 @@
       font-size: 18px;
       line-height: 1.6;
     }
-
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 18px;
       margin-top: 28px;
     }
-
     .card {
       display: flex;
       flex-direction: column;
@@ -92,12 +82,10 @@
       backdrop-filter: blur(16px);
       box-shadow: var(--shadow);
     }
-
     .card h2 {
       margin: 0;
       font-size: 22px;
     }
-
     .meta {
       display: inline-flex;
       width: fit-content;
@@ -107,20 +95,17 @@
       background: rgba(86, 194, 255, 0.09);
       font-size: 13px;
     }
-
     .desc {
       margin: 0;
       color: var(--muted);
       line-height: 1.6;
     }
-
     .actions {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-top: auto;
     }
-
     .button {
       display: inline-flex;
       align-items: center;
@@ -134,19 +119,16 @@
       background: rgba(255, 255, 255, 0.05);
       transition: transform .2s ease, border-color .2s ease, background .2s ease;
     }
-
     .button:hover {
       transform: translateY(-1px);
       border-color: rgba(86, 194, 255, 0.45);
       background: rgba(86, 194, 255, 0.12);
     }
-
     .button.primary {
       color: #02111c;
       border-color: transparent;
       background: linear-gradient(135deg, var(--accent), var(--accent-2));
     }
-
     .footer {
       margin-top: 18px;
       color: var(--muted);
@@ -160,43 +142,42 @@
     <section class="hero">
       <div class="eyebrow">Lampa Plugins Catalog</div>
       <h1>Плагины для Lampa в одном репозитории</h1>
-      <p class="lead">Здесь собраны пользовательские плагины с прямыми ссылками для подключения, описанием и отдельным JSON-каталогом для автоматической интеграции.</p>
+      <p class="lead">Здесь собраны пользовательские плагины с прямыми ссылками для подключения и коротким описанием.</p>
       <div class="grid">
         <article class="card">
           <span class="meta">v3.0.0</span>
-          <h2>Interface Atelier</h2>
-          <p class="desc">Переработка интерфейса Lampa: карточки, full-card, кнопки, бейджи и визуальные акценты.</p>
+          <h2>atelier.js</h2>
+          <p class="desc">Визуальная переработка карточек и full-card.</p>
           <div class="actions">
-            <a class="button primary" href="./interface_mod.js">Открыть</a>
-            <a class="button" href="https://jefrexon-blip.github.io/lampa-plugins/interface_mod.js">Прямая ссылка</a>
+            <a class="button primary" href="./atelier.js">Открыть</a>
+            <a class="button" href="https://jefrexon-blip.github.io/lampa-plugins/atelier.js">Прямая ссылка</a>
           </div>
         </article>
         <article class="card">
           <span class="meta">v3.0.0</span>
-          <h2>CineScore</h2>
-          <p class="desc">Плагин рейтингов KP и IMDb с кэшем, ручным обновлением и улучшенным отображением в карточке.</p>
+          <h2>score.js</h2>
+          <p class="desc">Панель рейтингов KP и IMDb.</p>
           <div class="actions">
-            <a class="button primary" href="./rating.js">Открыть</a>
-            <a class="button" href="https://jefrexon-blip.github.io/lampa-plugins/rating.js">Прямая ссылка</a>
+            <a class="button primary" href="./score.js">Открыть</a>
+            <a class="button" href="https://jefrexon-blip.github.io/lampa-plugins/score.js">Прямая ссылка</a>
           </div>
         </article>
         <article class="card">
           <span class="meta">v1.0.1</span>
-          <h2>Parser Atlas</h2>
-          <p class="desc">Каталог публичных парсеров и серверов TorrServer для быстрого переключения и проверки доступности.</p>
+          <h2>atlas.js</h2>
+          <p class="desc">Каталог и переключение публичных парсеров.</p>
           <div class="actions">
-            <a class="button primary" href="./pubtorr.js">Открыть</a>
-            <a class="button" href="https://jefrexon-blip.github.io/lampa-plugins/pubtorr.js">Прямая ссылка</a>
+            <a class="button primary" href="./atlas.js">Открыть</a>
+            <a class="button" href="https://jefrexon-blip.github.io/lampa-plugins/atlas.js">Прямая ссылка</a>
           </div>
         </article>
         <article class="card">
           <span class="meta">Utility</span>
           <h2>Дополнения</h2>
-          <p class="desc">В репозитории также доступны Atlas Loader и TorrServer Pulse для дополнительных сценариев подключения.</p>
+          <p class="desc">Дополнительные файлы для загрузки каталога и preload-интерфейса TorrServer.</p>
           <div class="actions">
-            <a class="button" href="./Parser.js">Atlas Loader</a>
-            <a class="button" href="./ts-preload.js">TorrServer Pulse</a>
-            <a class="button" href="./plugins.json">plugins.json</a>
+            <a class="button" href="./loader.js">loader.js</a>
+            <a class="button" href="./pulse.js">pulse.js</a>
           </div>
         </article>
       </div>
