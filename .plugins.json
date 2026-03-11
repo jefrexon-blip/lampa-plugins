@@ -26,12 +26,5 @@
     "version": "1.0.0",
     "entry": "https://jefrexon-blip.github.io/lampa-plugins/pulse.js",
     "description": "Плагин preload для TorrServer."
-  },
-  {
-    "id": "parser_loader",
-    "name": "loader",
-    "version": "1.0.0-prod",
-    "entry": "https://jefrexon-blip.github.io/lampa-plugins/loader.js",
-    "description": "Лёгкий загрузчик плагина каталога парсеров."
   }
 ]

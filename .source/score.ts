@@ -580,10 +580,28 @@ Lampa.Manifest = {
   }
 
   function rootTarget(root) {
-    var holder = root.find('.full-start-new__right').eq(0);
-    if (!holder.length) holder = root.find('.full-start__right').eq(0);
-    if (!holder.length) holder = root.find('.full-start-new').eq(0);
-    if (!holder.length) holder = root.find('.full-start').eq(0);
+    var selectors = [
+      '.full-start-new__rate-line',
+      '.full-start__rate-line',
+      '.full-start-new__details',
+      '.full-start__details',
+      '.full-start-new__right',
+      '.full-start__right',
+      '.full-start-new__head',
+      '.full-start__head',
+      '.full-start-new__body',
+      '.full-start__body',
+      '.full-start-new',
+      '.full-start'
+    ];
+    var i;
+    var holder = $();
+
+    for (i = 0; i < selectors.length; i++) {
+      holder = root.find(selectors[i]).eq(0);
+      if (holder.length) return holder;
+    }
+
     return holder;
   }
 
@@ -595,6 +613,7 @@ Lampa.Manifest = {
     if (block.length) return block;
 
     target = rootTarget(root);
+    if (!target.length) target = root;
     if (!target.length) return $();
 
     html = '' +
@@ -619,7 +638,10 @@ Lampa.Manifest = {
       '</div>';
 
     block = $(html);
-    target.prepend(block);
+
+    if (target.hasClass('full-start-new__rate-line') || target.hasClass('full-start__rate-line')) target.after(block);
+    else target.prepend(block);
+
     return block;
   }
 

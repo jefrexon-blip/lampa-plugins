@@ -481,10 +481,26 @@
       };
     }
     function rootTarget(root) {
-      var holder = root.find(".full-start-new__right").eq(0);
-      if (!holder.length) holder = root.find(".full-start__right").eq(0);
-      if (!holder.length) holder = root.find(".full-start-new").eq(0);
-      if (!holder.length) holder = root.find(".full-start").eq(0);
+      var selectors = [
+        ".full-start-new__rate-line",
+        ".full-start__rate-line",
+        ".full-start-new__details",
+        ".full-start__details",
+        ".full-start-new__right",
+        ".full-start__right",
+        ".full-start-new__head",
+        ".full-start__head",
+        ".full-start-new__body",
+        ".full-start__body",
+        ".full-start-new",
+        ".full-start"
+      ];
+      var i;
+      var holder = $();
+      for (i = 0; i < selectors.length; i++) {
+        holder = root.find(selectors[i]).eq(0);
+        if (holder.length) return holder;
+      }
       return holder;
     }
     function createPanel(root, config) {
@@ -493,10 +509,12 @@
       var html;
       if (block.length) return block;
       target = rootTarget(root);
+      if (!target.length) target = root;
       if (!target.length) return $();
       html = '<div class="cine-score' + (config.compact ? " cine-score--compact" : "") + '"><div class="cine-score__item" data-key="kp"><div class="cine-score__top"><div class="cine-score__label">KP</div></div><div class="cine-score__value">—</div><div class="cine-score__meta">Кинопоиск</div></div><div class="cine-score__item" data-key="imdb"><div class="cine-score__top"><div class="cine-score__label">IMDb</div></div><div class="cine-score__value">—</div><div class="cine-score__meta">Internet Movie Database</div></div><div class="cine-score__foot"><div class="cine-score__status" data-role="status" data-kind="ok">Загрузка рейтингов</div><div class="cine-score__actions"><div class="cine-score__stamp" data-role="stamp"></div><div class="cine-score__refresh selector" data-role="refresh"><svg viewBox="0 0 24 24" fill="none"><path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 4v5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Обновить</span></div></div></div></div>';
       block = $(html);
-      target.prepend(block);
+      if (target.hasClass("full-start-new__rate-line") || target.hasClass("full-start__rate-line")) target.after(block);
+      else target.prepend(block);
       return block;
     }
     function markLoading(panel, config) {
