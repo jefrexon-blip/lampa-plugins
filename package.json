@@ -1,0 +1,13 @@
+{
+  "name": "lampa-plugins",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "node .build/build.mjs",
+    "check": "node .build/check.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.1",
+    "typescript": "^5.8.2"
+  }
+}
