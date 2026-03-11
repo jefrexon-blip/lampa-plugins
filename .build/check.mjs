@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import ts from 'typescript';
 
-const files = ['.source/interface_mod.ts', '.source/rating.ts'];
+const files = ['.source/interface_mod.ts', '.source/rating.ts', '.source/pubtorr.ts'];
 
 for (const file of files) {
   const source = await readFile(file, 'utf8');

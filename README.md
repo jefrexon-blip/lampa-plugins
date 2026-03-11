@@ -31,3 +31,9 @@
 - Сборка: `npm install`
 - Пересобрать плагины: `npm run build`
 - Проверка TypeScript: `npm run check`
+
+Сейчас через скрытую TS-схему собираются:
+
+- `interface_mod.js`
+- `rating.js`
+- `pubtorr.js`

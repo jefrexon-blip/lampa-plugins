@@ -2,7 +2,8 @@ import { build } from 'esbuild';
 
 const entries = [
   { input: '.source/interface_mod.ts', output: 'interface_mod.js' },
-  { input: '.source/rating.ts', output: 'rating.js' }
+  { input: '.source/rating.ts', output: 'rating.js' },
+  { input: '.source/pubtorr.ts', output: 'pubtorr.js' }
 ];
 
 for (const entry of entries) {
