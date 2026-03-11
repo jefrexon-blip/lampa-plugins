@@ -2,7 +2,7 @@ declare var Lampa: any;
 declare var $: any;
 
 /***********************
- * LME PubTorr / Parsers Catalog
+ * Parser Atlas / Parsers Catalog
  * Safe (no async/await, no Object.values)
  ***********************/
 
@@ -11,8 +11,8 @@ try {
   if (typeof Lampa !== 'undefined') {
     Lampa.Manifest = {
       type: 'plugin',
-      name: 'LME PubTorr',
-      description: 'Каталог парсеров + проверка доступности (Jackett / Prowlarr).',
+      name: 'Parser Atlas',
+      description: 'Выбор парсера и проверка его доступности для Jackett и Prowlarr.',
       version: '1.0.1-prod',
       author: 'jefrexon',
       icon:
@@ -600,7 +600,7 @@ try {
       if (Lampa.SettingsApi && Lampa.SettingsApi.addComponent) {
         Lampa.SettingsApi.addComponent({
           component: 'pubtorr',
-          name: (Lampa.Manifest && Lampa.Manifest.name) ? Lampa.Manifest.name : 'LME PubTorr',
+          name: (Lampa.Manifest && Lampa.Manifest.name) ? Lampa.Manifest.name : 'Parser Atlas',
           icon: 'plugin'
         });
       }

@@ -14,8 +14,8 @@
 
 ## Плагины
 
-- `interface_mod.js` — визуальный мод интерфейса, карточек и full-card.
-- `rating.js` — вывод и обновление рейтингов KP и IMDb.
-- `pubtorr.js` — каталог и переключение публичных парсеров.
-- `ts-preload.js` — preload-интерфейс для TorrServer.
-- `Parser.js` — загрузчик `pubtorr.js`.
+- `interface_mod.js` — Interface Atelier, визуальная переработка карточек и full-card.
+- `rating.js` — CineScore, панель рейтингов KP и IMDb.
+- `pubtorr.js` — Parser Atlas, каталог и переключение публичных парсеров.
+- `ts-preload.js` — TorrServer Pulse, preload-интерфейс для TorrServer.
+- `Parser.js` — Atlas Loader, загрузчик `pubtorr.js`.

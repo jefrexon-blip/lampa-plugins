@@ -3,8 +3,8 @@
     if (typeof Lampa !== "undefined") {
       Lampa.Manifest = {
         type: "plugin",
-        name: "LME PubTorr",
-        description: "Каталог парсеров + проверка доступности (Jackett / Prowlarr).",
+        name: "Parser Atlas",
+        description: "Выбор парсера и проверка его доступности для Jackett и Prowlarr.",
         version: "1.0.1-prod",
         author: "jefrexon",
         icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6.5C4 5.119 5.119 4 6.5 4h11C18.881 4 20 5.119 20 6.5v11c0 1.381-1.119 2.5-2.5 2.5h-11C5.119 20 4 18.881 4 17.5v-11Z" stroke="currentColor" stroke-width="2"/><path d="M7 16l4-4 3 3 3-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="9" r="1.3" fill="currentColor"/></svg>'
@@ -483,7 +483,7 @@
         if (Lampa.SettingsApi && Lampa.SettingsApi.addComponent) {
           Lampa.SettingsApi.addComponent({
             component: "pubtorr",
-            name: Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : "LME PubTorr",
+            name: Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : "Parser Atlas",
             icon: "plugin"
           });
         }
