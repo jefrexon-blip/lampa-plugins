@@ -673,11 +673,19 @@ if (typeof Lampa !== 'undefined') {
   }
 
   function updateNativeRates(root, payload, config) {
-    var kpNode = root.find('.rate--kp > div').eq(0);
-    var imdbNode = root.find('.rate--imdb > div').eq(0);
+    var kpWrap = root.find('.rate--kp').eq(0);
+    var imdbWrap = root.find('.rate--imdb').eq(0);
+    var kpNode = kpWrap.find('> div').eq(0);
+    var imdbNode = imdbWrap.find('> div').eq(0);
 
-    if (config.showKp && kpNode.length) kpNode.text(formatRating(payload.kp));
-    if (config.showImdb && imdbNode.length) imdbNode.text(formatRating(payload.imdb));
+    if (config.showKp && kpNode.length) {
+      kpWrap.removeClass('hide');
+      kpNode.text(formatRating(payload.kp));
+    }
+    if (config.showImdb && imdbNode.length) {
+      imdbWrap.removeClass('hide');
+      imdbNode.text(formatRating(payload.imdb));
+    }
   }
 
   function renderPanel(root, movie, payload, config, fromRefresh) {
