@@ -1,23 +1,13 @@
 (function() {
-  try {
-    if (typeof Lampa !== "undefined") {
-      Lampa.Manifest = {
-        type: "plugin",
-        name: "Каталог парсеров",
-        description: "Выбор парсера и проверка его доступности для Jackett и Prowlarr.",
-        version: "1.0.1-prod",
-        author: "jefrexon",
-        icon: '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 6.5C4 5.119 5.119 4 6.5 4h11C18.881 4 20 5.119 20 6.5v11c0 1.381-1.119 2.5-2.5 2.5h-11C5.119 20 4 18.881 4 17.5v-11Z" stroke="currentColor" stroke-width="2"/><path d="M7 16l4-4 3 3 3-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="17" cy="9" r="1.3" fill="currentColor"/></svg>'
-      };
-    }
-  } catch (e) {
-  }
   (function() {
     "use strict";
     if (typeof window === "undefined" || typeof document === "undefined") return;
     if (typeof Lampa === "undefined") return;
     if (typeof $ === "undefined") return;
-    var PUBTORR_VERSION = Lampa.Manifest && Lampa.Manifest.version ? Lampa.Manifest.version : "1.0.1-prod";
+    var PLUGIN_NAME = "Каталог парсеров";
+    var PLUGIN_DESC = "Выбор парсера и проверка его доступности для Jackett и Prowlarr.";
+    var PLUGIN_VERSION = "1.0.1-prod";
+    var PUBTORR_VERSION = PLUGIN_VERSION;
     var PUBTORR_BUILD = "2026-02-13";
     function translate() {
       try {
@@ -174,119 +164,123 @@
     function cacheKey(parserId, url) {
       return (parserId || "unknown") + "::" + (url || "");
     }
-    function runPool(tasks, limit) {
+    function runPool(tasks, limit, done) {
       limit = Math.max(1, limit || 1);
-      var i = 0, active = 0;
+      var i = 0;
+      var active = 0;
       var results = [];
-      return new Promise(function(resolve) {
-        function next() {
-          while (active < limit && i < tasks.length) {
-            (function(idx) {
-              active++;
-              Promise.resolve().then(tasks[idx]).then(function(r) {
-                results[idx] = r;
-              }).catch(function(e) {
-                results[idx] = e;
-              }).finally(function() {
-                active--;
-                next();
-              });
-            })(i);
-            i++;
-          }
-          if (i >= tasks.length && active === 0) resolve(results);
+      function next() {
+        while (active < limit && i < tasks.length) {
+          (function(idx) {
+            active++;
+            tasks[idx](function(result) {
+              results[idx] = result;
+              active--;
+              next();
+            });
+          })(i);
+          i++;
         }
-        next();
+        if (i >= tasks.length && active === 0) done(results);
+      }
+      next();
+    }
+    function ajaxOnce(url, done) {
+      $.ajax({
+        url: url,
+        method: "GET",
+        timeout: AJAX_TIMEOUT,
+        success: function(_resp, _text, xhr) {
+          done({ ok: true, xhr: xhr });
+        },
+        error: function(xhr) {
+          done({ ok: false, xhr: xhr });
+        }
       });
     }
-    function ajaxOnce(url) {
-      return new Promise(function(resolve) {
-        $.ajax({
-          url: url,
-          method: "GET",
-          timeout: AJAX_TIMEOUT,
-          success: function(_resp, _text, xhr) {
-            resolve({ ok: true, xhr: xhr });
-          },
-          error: function(xhr) {
-            resolve({ ok: false, xhr: xhr });
-          }
-        });
-      });
+    function delay(ms, done) {
+      setTimeout(done, ms);
     }
-    function delay(ms) {
-      return new Promise(function(r) {
-        setTimeout(r, ms);
-      });
-    }
-    function requestWithFallback(urls) {
+    function requestWithFallback(urls, done) {
       var index = 0;
       function tryUrl(u) {
         var attempt = 0;
         function oneAttempt() {
-          return ajaxOnce(u).then(function(res) {
+          ajaxOnce(u, function(res) {
             var st = statusFromXhr(res.xhr);
             if (st === STATUS.ok || st === STATUS.authError) {
-              return { status: st, usedUrl: u };
+              done({ status: st, usedUrl: u });
+              return;
             }
             if (attempt < RETRY_COUNT) {
               attempt++;
-              return delay(RETRY_DELAY_MS + attempt * 250).then(oneAttempt);
+              delay(RETRY_DELAY_MS + attempt * 250, oneAttempt);
+              return;
             }
-            return null;
+            nextUrl();
           });
         }
-        return oneAttempt();
+        oneAttempt();
       }
       function nextUrl() {
         if (index >= urls.length) {
-          return Promise.resolve({ status: STATUS.networkError, usedUrl: urls[0] || "" });
+          done({ status: STATUS.networkError, usedUrl: urls[0] || "" });
+          return;
         }
-        var u = urls[index++];
-        return tryUrl(u).then(function(res) {
-          if (res) return res;
-          return nextUrl();
-        });
+        tryUrl(urls[index++]);
       }
-      return nextUrl();
+      nextUrl();
     }
     var currentCheckToken = 0;
-    function checkAlive(parsers) {
-      if (!Array.isArray(parsers) || !parsers.length) return Promise.resolve({});
+    function checkAlive(parsers, done) {
+      if (!parsers || !parsers.length) {
+        done({});
+        return;
+      }
       var token = ++currentCheckToken;
       var results = {};
-      var tasks = parsers.map(function(parser) {
-        return function() {
-          var parserId = parser.id || parser.name || "unknown";
-          var urls = buildUrls(parser);
-          if (!urls.length) {
-            results[parserId] = STATUS.unknown;
-            return Promise.resolve();
-          }
-          var primaryKey = cacheKey(parserId, urls[0]);
-          var cached = cache.get(primaryKey);
-          if (cached) {
-            results[parserId] = cached.status;
-            if (Date.now() - cached.updatedAt < SWR_WINDOW) {
-              log("[PubTorr] SWR skip network for", parserId);
-              return Promise.resolve();
+      var tasks = [];
+      var i;
+      for (i = 0; i < parsers.length; i++) {
+        (function(parser) {
+          tasks.push(function(taskDone) {
+            var parserId = parser.id || parser.name || "unknown";
+            var urls = buildUrls(parser);
+            if (!urls.length) {
+              results[parserId] = STATUS.unknown;
+              taskDone();
+              return;
             }
-          }
-          return requestWithFallback(urls).then(function(net) {
-            if (token !== currentCheckToken) return;
-            results[parserId] = net.status;
-            if (net.usedUrl) {
-              cache.set(cacheKey(parserId, net.usedUrl), net.status);
+            var primaryKey = cacheKey(parserId, urls[0]);
+            var cached = cache.get(primaryKey);
+            if (cached) {
+              results[parserId] = cached.status;
+              if (Date.now() - cached.updatedAt < SWR_WINDOW) {
+                log("[PubTorr] SWR skip network for", parserId);
+                taskDone();
+                return;
+              }
             }
-            if (net.usedUrl === urls[0] && (net.status === STATUS.ok || net.status === STATUS.authError || net.status === STATUS.unknown)) {
-              cache.set(primaryKey, net.status);
-            }
-            log("[PubTorr] check", parserId, "=>", net.status, "url=", net.usedUrl);
+            requestWithFallback(urls, function(net) {
+              if (token !== currentCheckToken) {
+                taskDone();
+                return;
+              }
+              results[parserId] = net.status;
+              if (net.usedUrl) {
+                cache.set(cacheKey(parserId, net.usedUrl), net.status);
+              }
+              if (net.usedUrl === urls[0] && (net.status === STATUS.ok || net.status === STATUS.authError || net.status === STATUS.unknown)) {
+                cache.set(primaryKey, net.status);
+              }
+              log("[PubTorr] check", parserId, "=>", net.status, "url=", net.usedUrl);
+              taskDone();
+            });
           });
-        };
-      });
-      return runPool(tasks, CONCURRENCY).then(function() {
-        return results;
+        })(parsers[i]);
+      }
+      runPool(tasks, CONCURRENCY, function() {
+        done(results);
       });
     }
     function getSelectedParserId() {
@@ -462,7 +456,7 @@
       function runChecks() {
         setChecking();
         var startedAt = Date.now();
-        checkAlive(parsersInfo).then(function(statusMap) {
+        checkAlive(parsersInfo, function(statusMap) {
           parserItems.each(function() {
             var item = $(this);
             var parserId = item.attr("data-parser-id");
@@ -478,6 +472,7 @@
       runChecks();
     }
     function parserSetting() {
+      if (!Lampa.SettingsApi || typeof Lampa.SettingsApi.addParam !== "function") return;
       applySelectedParser();
       Lampa.SettingsApi.addParam({
         component: "parser",

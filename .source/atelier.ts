@@ -1,6 +1,18 @@
 declare var Lampa: any;
 declare var $: any;
 
+var __atelier_previous_manifest = typeof Lampa !== 'undefined' ? Lampa.Manifest : null;
+
+if (typeof Lampa !== 'undefined') {
+  Lampa.Manifest = {
+    type: 'plugin',
+    name: 'Интерфейс',
+    description: 'Новая подача карточек, кнопок и рейтингов в Lampa.',
+    version: '3.0.0',
+    author: 'jefrexon'
+  };
+}
+
 (function () {
   'use strict';
 
@@ -132,15 +144,6 @@ declare var $: any;
   function ensureManifest() {
     if (!window.Lampa) return;
     try {
-      Lampa.Manifest = {
-        type: 'plugin',
-        name: 'Интерфейс',
-        version: plugin.version,
-        author: plugin.author,
-        description: 'Новая подача карточек, кнопок и рейтингов в Lampa.'
-      };
-    } catch (e) {}
-    try {
       if (Lampa.Plugin && Lampa.Plugin.create) {
         Lampa.Plugin.create(plugin.id, {
           title: 'Интерфейс',
@@ -151,6 +154,9 @@ declare var $: any;
         });
       }
     } catch (e2) {}
+    try {
+      if (__atelier_previous_manifest) Lampa.Manifest = __atelier_previous_manifest;
+    } catch (e3) {}
   }
 
   function getSettings() {

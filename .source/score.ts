@@ -1,13 +1,17 @@
 declare var Lampa: any;
 declare var $: any;
 
-Lampa.Manifest = {
-  type: 'plugin',
-  name: 'Рейтинги',
-  description: 'Показывает KP и IMDb в карточке фильма или сериала, хранит кэш и умеет обновлять данные вручную.',
-  version: '3.0.0',
-  author: 'jefrexon'
-};
+var __score_previous_manifest = typeof Lampa !== 'undefined' ? Lampa.Manifest : null;
+
+if (typeof Lampa !== 'undefined') {
+  Lampa.Manifest = {
+    type: 'plugin',
+    name: 'Рейтинги',
+    description: 'Показывает KP и IMDb в карточке фильма или сериала, хранит кэш и умеет обновлять данные вручную.',
+    version: '3.0.0',
+    author: 'jefrexon'
+  };
+}
 
 (function () {
   'use strict';
@@ -16,6 +20,9 @@ Lampa.Manifest = {
   if (typeof Lampa === 'undefined' || typeof $ === 'undefined') return;
 
   var PLUGIN_ID = 'cine_score';
+  var PLUGIN_NAME = 'Рейтинги';
+  var PLUGIN_DESC = 'Показывает KP и IMDb в карточке фильма или сериала, хранит кэш и умеет обновлять данные вручную.';
+  var PLUGIN_VERSION = '3.0.0';
   var SETTINGS_COMPONENT = 'cine_score_component';
   var CSS_ID = 'cine_score_styles';
   var CACHE_KEY = 'cine_score_cache_v1';
@@ -73,14 +80,21 @@ Lampa.Manifest = {
     }
   }
 
+  function toBool(value, fallback) {
+    if (value === true || value === false) return value;
+    if (value === 1 || value === '1' || value === 'true' || value === 'on' || value === 'yes') return true;
+    if (value === 0 || value === '0' || value === 'false' || value === 'off' || value === 'no') return false;
+    return !!fallback;
+  }
+
   function settings() {
     return {
-      enabled: !!read(keyMap.enabled, defaults.enabled),
-      showKp: !!read(keyMap.showKp, defaults.showKp),
-      showImdb: !!read(keyMap.showImdb, defaults.showImdb),
-      showSource: !!read(keyMap.showSource, defaults.showSource),
-      compact: !!read(keyMap.compact, defaults.compact),
-      animation: !!read(keyMap.animation, defaults.animation),
+      enabled: toBool(read(keyMap.enabled, defaults.enabled), defaults.enabled),
+      showKp: toBool(read(keyMap.showKp, defaults.showKp), defaults.showKp),
+      showImdb: toBool(read(keyMap.showImdb, defaults.showImdb), defaults.showImdb),
+      showSource: toBool(read(keyMap.showSource, defaults.showSource), defaults.showSource),
+      compact: toBool(read(keyMap.compact, defaults.compact), defaults.compact),
+      animation: toBool(read(keyMap.animation, defaults.animation), defaults.animation),
       ttlOk: toNumber(read(keyMap.ttlOk, defaults.ttlOk), 86400000),
       ttlFail: toNumber(read(keyMap.ttlFail, defaults.ttlFail), 900000)
     };
@@ -244,11 +258,11 @@ Lampa.Manifest = {
     if (!Lampa.SettingsApi || !Lampa.SettingsApi.addComponent || !Lampa.SettingsApi.addParam) return;
 
     try {
-      Lampa.SettingsApi.addComponent({
-        component: SETTINGS_COMPONENT,
-        name: 'Рейтинги',
-        icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M7 15.5 10.5 12 13 14.5 17 9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-      });
+        Lampa.SettingsApi.addComponent({
+          component: SETTINGS_COMPONENT,
+          name: PLUGIN_NAME,
+          icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M7 15.5 10.5 12 13 14.5 17 9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        });
     } catch (e) {}
 
     addParam('enabled', 'Включить', 'Показывать панель рейтингов в полной карточке.', 'trigger');
@@ -316,9 +330,9 @@ Lampa.Manifest = {
         },
         field: {
           name: 'Версия',
-          description: (Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : 'Рейтинги') + ' ' + (Lampa.Manifest && Lampa.Manifest.version ? Lampa.Manifest.version : '3.0.0')
-        }
-      });
+            description: PLUGIN_NAME + ' ' + PLUGIN_VERSION
+          }
+        });
     } catch (e4) {}
   }
 
@@ -795,10 +809,15 @@ Lampa.Manifest = {
 
     try {
       Lampa.Plugin.create(PLUGIN_ID, {
-        title: Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : 'Рейтинги',
-        desc: Lampa.Manifest && Lampa.Manifest.description ? Lampa.Manifest.description : 'KP и IMDb в полной карточке'
+        title: PLUGIN_NAME,
+        desc: PLUGIN_DESC,
+        version: PLUGIN_VERSION,
+        author: 'jefrexon'
       });
     } catch (e) {}
+    try {
+      if (__score_previous_manifest) Lampa.Manifest = __score_previous_manifest;
+    } catch (e2) {}
   }
 
   function init() {
