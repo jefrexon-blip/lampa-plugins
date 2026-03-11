@@ -11,7 +11,7 @@ try {
   if (typeof Lampa !== 'undefined') {
     Lampa.Manifest = {
       type: 'plugin',
-      name: 'Parser Atlas',
+      name: 'Каталог парсеров',
       description: 'Выбор парсера и проверка его доступности для Jackett и Prowlarr.',
       version: '1.0.1-prod',
       author: 'jefrexon',
@@ -595,18 +595,7 @@ try {
   function parserSetting() {
     applySelectedParser();
 
-    // Если сборка поддерживает — добавим компонент (иконка в настройках чтобы не было undefined)
-    try {
-      if (Lampa.SettingsApi && Lampa.SettingsApi.addComponent) {
-        Lampa.SettingsApi.addComponent({
-          component: 'pubtorr',
-          name: (Lampa.Manifest && Lampa.Manifest.name) ? Lampa.Manifest.name : 'Parser Atlas',
-          icon: 'plugin'
-        });
-      }
-    } catch (e) {}
-
-    // Встроим кнопку в стандартный компонент "parser" — как у тебя было
+    // Встроим кнопку в стандартный компонент "parser"
     Lampa.SettingsApi.addParam({
       component: 'parser',
       param: { name: 'lme_parser_manage', type: 'button' },

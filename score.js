@@ -1,7 +1,7 @@
 (function() {
   Lampa.Manifest = {
     type: "plugin",
-    name: "CineScore",
+    name: "Рейтинги",
     description: "Показывает KP и IMDb в карточке фильма или сериала, хранит кэш и умеет обновлять данные вручную.",
     version: "3.0.0",
     author: "jefrexon"
@@ -184,7 +184,7 @@
       try {
         Lampa.SettingsApi.addComponent({
           component: SETTINGS_COMPONENT,
-          name: "CineScore",
+          name: "Рейтинги",
           icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.8"/><path d="M7 15.5 10.5 12 13 14.5 17 9.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         });
       } catch (e) {
@@ -253,7 +253,7 @@
           },
           field: {
             name: "Версия",
-            description: (Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : "CineScore") + " " + (Lampa.Manifest && Lampa.Manifest.version ? Lampa.Manifest.version : "3.0.0")
+            description: (Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : "Рейтинги") + " " + (Lampa.Manifest && Lampa.Manifest.version ? Lampa.Manifest.version : "3.0.0")
           }
         });
       } catch (e4) {
@@ -637,7 +637,7 @@
       if (!Lampa.Plugin || !Lampa.Plugin.create) return;
       try {
         Lampa.Plugin.create(PLUGIN_ID, {
-          title: Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : "CineScore",
+          title: Lampa.Manifest && Lampa.Manifest.name ? Lampa.Manifest.name : "Рейтинги",
           desc: Lampa.Manifest && Lampa.Manifest.description ? Lampa.Manifest.description : "KP и IMDb в полной карточке"
         });
       } catch (e) {

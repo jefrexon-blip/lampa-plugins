@@ -121,7 +121,7 @@
       try {
         Lampa.Manifest = {
           type: "plugin",
-          name: "Interface Atelier",
+          name: "Интерфейс",
           version: plugin.version,
           author: plugin.author,
           description: "Новая подача карточек, кнопок и рейтингов в Lampa."
@@ -131,8 +131,8 @@
       try {
         if (Lampa.Plugin && Lampa.Plugin.create) {
           Lampa.Plugin.create(plugin.id, {
-            title: "Interface Atelier",
-            name: "Interface Atelier",
+            title: "Интерфейс",
+            name: "Интерфейс",
             version: plugin.version,
             author: plugin.author,
             description: "Новая подача карточек, кнопок и рейтингов в Lampa."
@@ -489,7 +489,7 @@
       ensureManifest();
       Lampa.SettingsApi.addComponent({
         component: plugin.id,
-        name: "Interface Atelier",
+        name: "Интерфейс",
         icon: '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="4" rx="2" fill="currentColor"/><rect x="3" y="10" width="18" height="4" rx="2" fill="currentColor"/><rect x="3" y="16" width="18" height="4" rx="2" fill="currentColor"/></svg>'
       });
       addParam("enabled", "trigger", true, "Включить мод", "Обновляет карточки, постер и кнопки.", restart);
@@ -541,7 +541,7 @@
       Lampa.SettingsApi.addParam({
         component: plugin.id,
         param: { name: "interface_mod_version", type: "static" },
-        field: { name: "Версия", description: "Interface Atelier " + plugin.version }
+        field: { name: "Версия", description: "Интерфейс " + plugin.version }
       });
     }
     function addParam(name, type, defaultValue, title, description, onChange, values) {
