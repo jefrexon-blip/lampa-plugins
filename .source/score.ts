@@ -417,6 +417,37 @@ if (typeof Lampa !== 'undefined') {
     return a.indexOf(b) !== -1 || b.indexOf(a) !== -1;
   }
 
+  function cleanTitle(value) {
+    return String(value || '').replace(/[\s.,:;'"`!?]+/g, ' ').replace(/^\s+|\s+$/g, '');
+  }
+
+  function cleanKinopoiskTitle(value) {
+    return cleanTitle(value)
+      .replace(/^[ \/\\]+/, '')
+      .replace(/[ \/\\]+$/, '')
+      .replace(/\+( *[+\/\\])+/g, '+')
+      .replace(/([+\/\\] *)+\+/g, '+')
+      .replace(/( *[\/\\]+ *)+/g, '+');
+  }
+
+  function legacyNormalizeTitle(value) {
+    return cleanTitle(String(value || '')
+      .toLowerCase()
+      .replace(/[\-\u2010-\u2015\u2E3A\u2E3B\uFE58\uFE63\uFF0D]+/g, '-')
+      .replace(/\u0451/g, '\u0435'));
+  }
+
+  function equalTitle(left, right) {
+    return typeof left === 'string' && typeof right === 'string' && legacyNormalizeTitle(left) === legacyNormalizeTitle(right);
+  }
+
+  function containsTitle(left, right) {
+    var a = legacyNormalizeTitle(left);
+    var b = legacyNormalizeTitle(right);
+    if (!a || !b) return false;
+    return a.indexOf(b) !== -1 || b.indexOf(a) !== -1;
+  }
+
   function extractYear(movie) {
     var value = movie.release_date || movie.first_air_date || movie.last_air_date || movie.year || '';
     value = String(value);
@@ -507,6 +538,126 @@ if (typeof Lampa !== 'undefined') {
     return scored[0].item;
   }
 
+  function chooseLegacyCandidate(items, movie) {
+    var searchDate = movie.release_date || movie.first_air_date || movie.last_air_date || '0000';
+    var searchYear = parseInt(String(searchDate).slice(0, 4), 10) || 0;
+    var original = movie.original_title || movie.original_name || '';
+    var title = movie.title || movie.name || '';
+    var imdbId = movie.imdb_id || movie.imdbId;
+    var cards = items || [];
+    var sure = false;
+    var imdbSure = false;
+    var i;
+    var tmp;
+
+    for (i = 0; i < cards.length; i++) {
+      cards[i].tmp_year = parseInt(String(cards[i].start_date || cards[i].year || '0000').slice(0, 4), 10) || 0;
+    }
+
+    if (imdbId) {
+      tmp = cards.filter(function (item) {
+        return (item.imdb_id || item.imdbId) == imdbId;
+      });
+      if (tmp.length) {
+        cards = tmp;
+        sure = true;
+        imdbSure = true;
+      }
+    }
+
+    if (cards.length && original) {
+      tmp = cards.filter(function (item) {
+        return containsTitle(item.orig_title || item.nameOriginal, original) ||
+          containsTitle(item.en_title || item.nameEn, original) ||
+          containsTitle(item.title || item.ru_title || item.nameRu, original);
+      });
+      if (tmp.length) {
+        cards = tmp;
+        sure = true;
+      }
+    }
+
+    if (cards.length && title) {
+      tmp = cards.filter(function (item) {
+        return containsTitle(item.title || item.ru_title || item.nameRu, title) ||
+          containsTitle(item.en_title || item.nameEn, title) ||
+          containsTitle(item.orig_title || item.nameOriginal, title);
+      });
+      if (tmp.length) {
+        cards = tmp;
+        sure = true;
+      }
+    }
+
+    if (cards.length > 1 && searchYear) {
+      tmp = cards.filter(function (item) {
+        return item.tmp_year === searchYear;
+      });
+      if (!tmp.length) {
+        tmp = cards.filter(function (item) {
+          return item.tmp_year && item.tmp_year > searchYear - 2 && item.tmp_year < searchYear + 2;
+        });
+      }
+      if (tmp.length) cards = tmp;
+    }
+
+    if (cards.length === 1 && sure && !imdbSure) {
+      if (searchYear && cards[0].tmp_year) sure = cards[0].tmp_year > searchYear - 2 && cards[0].tmp_year < searchYear + 2;
+      if (sure) {
+        sure = false;
+        if (original) {
+          sure = sure ||
+            equalTitle(cards[0].orig_title || cards[0].nameOriginal, original) ||
+            equalTitle(cards[0].en_title || cards[0].nameEn, original) ||
+            equalTitle(cards[0].title || cards[0].ru_title || cards[0].nameRu, original);
+        }
+        if (title) {
+          sure = sure ||
+            equalTitle(cards[0].title || cards[0].ru_title || cards[0].nameRu, title) ||
+            equalTitle(cards[0].en_title || cards[0].nameEn, title) ||
+            equalTitle(cards[0].orig_title || cards[0].nameOriginal, title);
+        }
+      }
+    }
+
+    if (cards.length === 1 && sure) return cards[0];
+    return null;
+  }
+
+  function findKinopoiskIdLegacy(movie, apiRoot, headers, done, fail) {
+    var title = cleanKinopoiskTitle(movie.title || movie.name || movie.original_title || movie.original_name || '');
+    var imdbId = movie.imdb_id || movie.imdbId;
+    var searchUrl = Lampa.Utils.addUrlComponent(apiRoot + 'api/v2.1/films/search-by-keyword', 'keyword=' + encodeURIComponent(title));
+
+    function resolve(items) {
+      var selected = chooseLegacyCandidate(items, movie);
+      var kpId = selected && (selected.kp_id || selected.kinopoisk_id || selected.kinopoiskId || selected.filmId);
+      if (kpId) done({ kpId: kpId, headers: headers, apiRoot: apiRoot });
+      else fail();
+    }
+
+    function resolveList(json) {
+      if (json && json.items && json.items.length) resolve(json.items);
+      else if (json && json.films && json.films.length) resolve(json.films);
+      else resolve([]);
+    }
+
+    if (imdbId) {
+      requestJson(Lampa.Utils.addUrlComponent(apiRoot + 'api/v2.2/films', 'imdbId=' + encodeURIComponent(imdbId)), headers, function (json) {
+        var list = json && json.items && json.items.length ? json.items : [];
+        var selected = chooseLegacyCandidate(list, movie);
+        var kpId = selected && (selected.kp_id || selected.kinopoisk_id || selected.kinopoiskId || selected.filmId);
+
+        if (kpId) done({ kpId: kpId, headers: headers, apiRoot: apiRoot });
+        else requestJson(searchUrl, headers, resolveList, fail, 6000);
+      }, function () {
+        requestJson(searchUrl, headers, resolveList, fail, 6000);
+      }, 6000);
+    } else {
+      requestJson(searchUrl, headers, resolveList, fail, 6000);
+    }
+  }
+
   function findKinopoiskId(movie, done, fail) {
     var title = movie.title || movie.name || movie.original_title || movie.original_name || '';
     var imdbId = movie.imdb_id || movie.imdbId;
@@ -524,7 +675,7 @@ if (typeof Lampa !== 'undefined') {
       var selected = chooseCandidate(list, movie);
       var kpId = selected && (selected.kinopoiskId || selected.kinopoisk_id || selected.kp_id || selected.filmId);
       if (kpId) done({ kpId: kpId, headers: headers, apiRoot: apiRoot });
-      else fail();
+      else findKinopoiskIdLegacy(movie, apiRoot, headers, done, fail);
     }
 
     if (imdbId) {
